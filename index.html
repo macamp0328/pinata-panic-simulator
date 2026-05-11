@@ -7,18 +7,18 @@
   <style>
     /* ── Design tokens ─────────────────────────────────────────────── */
     :root {
-      /* depth stack — darkest to lightest */
-      --bg:       #06081a;   /* page bg, input fields (recessed)      */
-      --surface:  #0e1426;   /* panel column backgrounds               */
-      --surface2: #182236;   /* cards, event log, overlay              */
-      --surface3: #263550;   /* buttons, turn-dot inactive             */
+      /* depth stack — lightest (page) to darkest (recessed) */
+      --bg:       #edf1f8;   /* page bg, input fields (recessed)      */
+      --surface:  #ffffff;   /* panel column backgrounds               */
+      --surface2: #f4f7fc;   /* cards, event log, overlay              */
+      --surface3: #e2e8f4;   /* buttons, inactive turn dots            */
       --accent:   #e94560;
-      --accent2:  #f5a623;
-      --text:     #eaeaea;
-      --text-muted: #7a8db8;
-      --border:   #3a5080;   /* clearly visible dividers               */
+      --accent2:  #d4820a;   /* darker orange for better contrast on light */
+      --text:     #1a2240;
+      --text-muted: #5870a0;
+      --border:   #c4cfe8;   /* clearly visible dividers               */
       --radius:   8px;
-      --shadow:   0 2px 16px rgba(0,0,0,0.6);
+      --shadow:   0 2px 10px rgba(60,80,140,0.12);
     }
 
     /* ── Reset & base ──────────────────────────────────────────────── */
@@ -117,7 +117,7 @@
       transition: background .3s;
     }
     .turn-dot.current { background: var(--surface3); box-shadow: 0 0 0 2px var(--accent2); }
-    .turn-dot.miss    { background: #444; }
+    .turn-dot.miss    { background: #b0bcd8; }
     .turn-dot.drop    { background: var(--accent2); }
     .turn-dot.break   { background: var(--accent); }
 
@@ -135,15 +135,28 @@
     #event-log-wrap { width: 100%; max-width: 440px; }
     #event-log {
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 10px 12px; height: 150px; overflow-y: auto;
-      font-size: 11px; font-family: 'Menlo','Consolas',monospace; line-height: 1.6;
+      padding: 8px; height: 200px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 6px;
     }
-    .log-entry { color: var(--text-muted); }
-    .log-entry .tag  { color: var(--text); font-weight: 600; }
-    .log-entry .miss { color: #666; }
-    .log-entry .drop { color: var(--accent2); }
-    .log-entry .brk  { color: var(--accent); font-weight: 700; }
-    .log-entry .dist { color: #8888cc; padding-left: 10px; }
+    .log-card {
+      border-radius: 6px; padding: 9px 11px;
+      border-left: 3px solid transparent; font-size: 12px; line-height: 1.4;
+    }
+    .log-card.miss  { background: var(--surface3); border-left-color: var(--border); }
+    .log-card.drop  { background: #fff8ec; border-left-color: var(--accent2); }
+    .log-card.break { background: #fdf0f2; border-left-color: var(--accent); }
+    .log-card.end-release { background: #fff8ec; border-left-color: var(--accent2); opacity: .85; }
+    .log-card.end-lost    { background: var(--surface3); border-left-color: var(--border); opacity: .75; }
+    .log-turn-label { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; font-weight: 500; }
+    .log-action { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+    .log-card.miss  .log-action { color: var(--text-muted); font-weight: 500; }
+    .log-candy-row  { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+    .log-candy-dot  { width: 15px; height: 15px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+    .log-dist-row   { display: flex; flex-wrap: wrap; gap: 4px; }
+    .dist-chip {
+      background: var(--surface3); border: 1px solid var(--border);
+      border-radius: 10px; padding: 2px 8px; font-size: 10px; color: var(--text-muted); font-weight: 600;
+    }
 
     /* ── Break banner ──────────────────────────────────────────────── */
     #break-banner {
@@ -204,11 +217,11 @@
     .ctrl-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
     .ctrl-btn { width: 100%; padding: 8px; font-size: 12px; font-weight: 600; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; transition: background .15s; }
     .ctrl-btn.secondary { background: var(--surface3); color: var(--text); }
-    .ctrl-btn.secondary:hover { background: #34497a; }
+    .ctrl-btn.secondary:hover { background: #d0d8ee; }
     .ctrl-btn.danger { background: none; color: var(--accent); }
     .ctrl-btn.danger:hover { background: var(--accent); color: #fff; }
     .ctrl-btn.neutral { background: none; color: var(--text-muted); }
-    .ctrl-btn.neutral:hover { background: var(--border); }
+    .ctrl-btn.neutral:hover { background: var(--surface3); }
 
     /* ── Round summary overlay ─────────────────────────────────────── */
     #overlay {
@@ -484,6 +497,19 @@
 
 const MASTER_COLORS = ['red', 'orange', 'green', 'blue', 'purple'];
 
+const PLAYER_NAME_POOL = [
+  'Luna', 'Blaze', 'Mochi', 'Sparky', 'Pepper',
+  'Waffles', 'Cosmo', 'Zigzag', 'Pixel', 'Bingo',
+  'Sunny', 'Rocket', 'Bubbles', 'Turbo', 'Dizzy',
+  'Noodle', 'Pebble', 'Fizz', 'Patches', 'Dazzle',
+  'Tempo', 'Jinx', 'Remy', 'Chip', 'Biscuit',
+];
+
+function pickRandomNames(count) {
+  const shuffled = [...PLAYER_NAME_POOL].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
 const COLOR_HEX = {
   red:    '#ff3b3b',
   orange: '#ff8c00',
@@ -565,8 +591,9 @@ function totalCandyInPool(pool) {
 }
 
 function buildPlayers(count, existing) {
+  const freshNames = pickRandomNames(count);
   return Array.from({ length: count }, (_, i) => ({
-    name: existing?.[i]?.name ?? `Player ${i + 1}`,
+    name: existing?.[i]?.name ?? freshNames[i],
     roundCandy: 0,
     totalCandy: existing?.[i]?.totalCandy ?? 0,
     colorCounts: {},
@@ -892,31 +919,61 @@ function renderOverlay() {
 }
 
 /* ── Event log ─────────────────────────────────────────────────── */
-function logTurn(html) {
+function logEntry({ type, round, turn, batterName, pieces, dist, remaining }) {
   const log = document.getElementById('event-log');
-  const entry = document.createElement('div');
-  entry.className = 'log-entry';
-  entry.innerHTML = html;
-  log.appendChild(entry);
+  const card = document.createElement('div');
+  card.className = `log-card ${type}`;
+
+  const label = document.createElement('div');
+  label.className = 'log-turn-label';
+  label.textContent = turn
+    ? `Round ${round} · Turn ${turn}`
+    : `Round ${round} · End of round`;
+  card.appendChild(label);
+
+  const action = document.createElement('div');
+  action.className = 'log-action';
+  if (type === 'miss') {
+    action.textContent = `${batterName} swings — nothing falls`;
+  } else if (type === 'drop') {
+    action.textContent = `${pieces.length} piece${pieces.length !== 1 ? 's' : ''} fell!`;
+  } else if (type === 'break') {
+    action.textContent = `PINATA BROKEN — ${pieces.length} pieces burst out!`;
+  } else if (type === 'end-release') {
+    action.textContent = `Round over — ${pieces.length} leftover piece${pieces.length !== 1 ? 's' : ''} released`;
+  } else if (type === 'end-lost') {
+    action.textContent = `Round over — ${remaining} piece${remaining !== 1 ? 's' : ''} lost inside`;
+  }
+  card.appendChild(action);
+
+  if (pieces?.length > 0) {
+    const candyRow = document.createElement('div');
+    candyRow.className = 'log-candy-row';
+    for (const color of pieces) {
+      const dot = document.createElement('span');
+      dot.className = 'log-candy-dot';
+      dot.style.background = COLOR_HEX[color] ?? '#888';
+      dot.title = color;
+      candyRow.appendChild(dot);
+    }
+    card.appendChild(candyRow);
+  }
+
+  if (dist && Object.keys(dist).length > 0) {
+    const distRow = document.createElement('div');
+    distRow.className = 'log-dist-row';
+    state.players.forEach((p, i) => {
+      if (!dist[i]) return;
+      const chip = document.createElement('span');
+      chip.className = 'dist-chip';
+      chip.textContent = `${p.name}: ${dist[i]}`;
+      distRow.appendChild(chip);
+    });
+    card.appendChild(distRow);
+  }
+
+  log.appendChild(card);
   log.scrollTop = log.scrollHeight;
-}
-
-function colorSpan(color) {
-  const hex = COLOR_HEX[color] ?? '#888';
-  return `<span style="display:inline-flex;align-items:center;gap:2px;font-size:10px;color:var(--text-muted)">` +
-    `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hex};flex-shrink:0"></span>${color}</span>`;
-}
-
-function formatPieces(pieces) {
-  const counts = {};
-  for (const c of pieces) counts[c] = (counts[c] ?? 0) + 1;
-  return Object.entries(counts).map(([c, n]) => `${n} ${colorSpan(c)}`).join(', ');
-}
-
-function formatDist(dist) {
-  return state.players
-    .map((p, i) => dist[i] ? `${p.name} got ${dist[i]}` : null)
-    .filter(Boolean).join(', ');
 }
 
 /* ── Candy burst ───────────────────────────────────────────────── */
@@ -975,13 +1032,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
       state.turnHistory[turn - 1] = { type: 'break' };
       state.lastTurnResult = { type: 'break', pieces, dist };
 
-      logTurn(
-        `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
-        ` <span class="brk">⚡ FINAL BREAK — ${pieces.length} pieces released!</span><br>` +
-        (pieces.length > 0
-          ? `<span class="dist">→ ${formatDist(dist)}</span>`
-          : `<span class="dist">→ Piñata was already empty</span>`)
-      );
+      logEntry({ type: 'break', round: state.currentRound, turn, batterName: batter.name, pieces, dist });
       triggerCandyBurst(pieces.length);
       state.roundOver = true;
       if (state.currentRound >= config.totalRounds) state.gameOver = true;
@@ -995,10 +1046,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
       state.uiPhase = 'result';
       state.turnHistory[turn - 1] = { type: 'miss' };
       state.lastTurnResult = { type: 'miss' };
-      logTurn(
-        `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
-        ` <span class="miss">${batter.name} (batter) — No drop.</span>`
-      );
+      logEntry({ type: 'miss', round: state.currentRound, turn, batterName: batter.name });
       finishTurn(); return;
     }
 
@@ -1010,10 +1058,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
       state.uiPhase = 'result';
       state.turnHistory[turn - 1] = { type: 'miss' };
       state.lastTurnResult = { type: 'miss' };
-      logTurn(
-        `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
-        ` <span class="miss">${batter.name} (batter) — Piñata empty.</span>`
-      );
+      logEntry({ type: 'miss', round: state.currentRound, turn, batterName: batter.name });
       finishTurn(); return;
     }
 
@@ -1024,11 +1069,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
     state.turnHistory[turn - 1] = { type: 'drop' };
     state.lastTurnResult = { type: 'drop', pieces, dist };
 
-    logTurn(
-      `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
-      ` <span class="drop">${batter.name} (batter) — ${pieces.length} piece${pieces.length !== 1 ? 's' : ''} fell: ${formatPieces(pieces)}</span><br>` +
-      `<span class="dist">→ ${formatDist(dist)}</span>`
-    );
+    logEntry({ type: 'drop', round: state.currentRound, turn, batterName: batter.name, pieces, dist });
     triggerCandyBurst(pieces.length);
     finishTurn();
 
@@ -1045,16 +1086,9 @@ function finishTurn() {
     if (state.currentRound >= config.totalRounds) state.gameOver = true;
 
     if (config.endOfRoundBehavior === 'release' && endResult.remaining > 0) {
-      logTurn(
-        `<span class="tag">[Round ${state.currentRound} / End]</span>` +
-        ` <span class="drop">Turns exhausted — ${endResult.pieces?.length ?? 0} piece${(endResult.pieces?.length ?? 0) !== 1 ? 's' : ''} released.</span>` +
-        (endResult.dist ? `<br><span class="dist">→ ${formatDist(endResult.dist)}</span>` : '')
-      );
+      logEntry({ type: 'end-release', round: state.currentRound, turn: null, pieces: endResult.pieces, dist: endResult.dist });
     } else if (config.endOfRoundBehavior === 'lost' && endResult.remaining > 0) {
-      logTurn(
-        `<span class="tag">[Round ${state.currentRound} / End]</span>` +
-        ` <span class="miss">Turns exhausted — ${endResult.remaining} piece${endResult.remaining !== 1 ? 's' : ''} lost.</span>`
-      );
+      logEntry({ type: 'end-lost', round: state.currentRound, turn: null, remaining: endResult.remaining });
     }
 
     renderAll();
