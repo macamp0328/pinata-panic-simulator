@@ -7,16 +7,18 @@
   <style>
     /* ── Design tokens ─────────────────────────────────────────────── */
     :root {
-      --bg: #1a1a2e;
-      --surface: #16213e;
-      --surface2: #0f3460;
-      --accent: #e94560;
-      --accent2: #f5a623;
-      --text: #eaeaea;
-      --text-muted: #8888aa;
-      --border: #2a2a4a;
-      --radius: 8px;
-      --shadow: 0 2px 12px rgba(0,0,0,0.4);
+      /* depth stack — darkest to lightest */
+      --bg:       #06081a;   /* page bg, input fields (recessed)      */
+      --surface:  #0e1426;   /* panel column backgrounds               */
+      --surface2: #182236;   /* cards, event log, overlay              */
+      --surface3: #263550;   /* buttons, turn-dot inactive             */
+      --accent:   #e94560;
+      --accent2:  #f5a623;
+      --text:     #eaeaea;
+      --text-muted: #7a8db8;
+      --border:   #3a5080;   /* clearly visible dividers               */
+      --radius:   8px;
+      --shadow:   0 2px 16px rgba(0,0,0,0.6);
     }
 
     /* ── Reset & base ──────────────────────────────────────────────── */
@@ -41,7 +43,7 @@
     #panel-players { background: var(--surface); }
 
     .player-card {
-      background: var(--bg);
+      background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 10px 12px;
@@ -111,10 +113,10 @@
     /* ── Turn tracker ──────────────────────────────────────────────── */
     .turn-tracker { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: 340px; }
     .turn-dot {
-      width: 18px; height: 18px; border-radius: 4px; background: var(--border);
+      width: 18px; height: 18px; border-radius: 4px; background: var(--surface3);
       transition: background .3s;
     }
-    .turn-dot.current { background: var(--surface2); box-shadow: 0 0 0 2px var(--accent2); }
+    .turn-dot.current { background: var(--surface3); box-shadow: 0 0 0 2px var(--accent2); }
     .turn-dot.miss    { background: #444; }
     .turn-dot.drop    { background: var(--accent2); }
     .turn-dot.break   { background: var(--accent); }
@@ -132,7 +134,7 @@
     /* ── Event log ─────────────────────────────────────────────────── */
     #event-log-wrap { width: 100%; max-width: 440px; }
     #event-log {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 10px 12px; height: 150px; overflow-y: auto;
       font-size: 11px; font-family: 'Menlo','Consolas',monospace; line-height: 1.6;
     }
@@ -201,8 +203,8 @@
 
     .ctrl-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
     .ctrl-btn { width: 100%; padding: 8px; font-size: 12px; font-weight: 600; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; transition: background .15s; }
-    .ctrl-btn.secondary { background: var(--surface2); color: var(--text); }
-    .ctrl-btn.secondary:hover { background: #1a4070; }
+    .ctrl-btn.secondary { background: var(--surface3); color: var(--text); }
+    .ctrl-btn.secondary:hover { background: #34497a; }
     .ctrl-btn.danger { background: none; color: var(--accent); }
     .ctrl-btn.danger:hover { background: var(--accent); color: #fff; }
     .ctrl-btn.neutral { background: none; color: var(--text-muted); }
@@ -215,7 +217,7 @@
     }
     #overlay.visible { display: flex; }
     .overlay-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
       padding: 28px 32px; min-width: 340px; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,.6);
     }
     .overlay-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; text-align: center; }
