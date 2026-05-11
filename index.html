@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piñata Panic — Mechanics Simulator</title>
+  <style>
+    /* ── Design tokens ─────────────────────────────────────────────── */
+    :root {
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --surface2: #0f3460;
+      --accent: #e94560;
+      --accent2: #f5a623;
+      --text: #eaeaea;
+      --text-muted: #8888aa;
+      --border: #2a2a4a;
+      --green: #4caf50;
+      --radius: 8px;
+      --candy-black: #2d2d2d;
+      --candy-green: #4caf50;
+      --candy-yellow: #ffeb3b;
+      --candy-blue: #2196f3;
+      --candy-pink: #e91e8c;
+      --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+
+    /* ── Reset & base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 240px 1fr 300px;
+      grid-template-rows: 1fr;
+    }
+
+    /* ── Scrollable panels ─────────────────────────────────────────── */
+    .panel {
+      overflow-y: auto;
+      padding: 16px;
+      border-right: 1px solid var(--border);
+    }
+    .panel:last-child { border-right: none; }
+
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); margin-bottom: 10px; }
+    h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin: 14px 0 6px; }
+
+    /* ── Player panel (left) ───────────────────────────────────────── */
+    #panel-players { background: var(--surface); }
+
+    .player-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      position: relative;
+      transition: border-color .2s;
+    }
+    .player-card.is-batter {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 1px var(--accent2);
+    }
+    .player-card.is-batter::before {
+      content: 'BATTER';
+      position: absolute;
+      top: 6px; right: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--accent2);
+    }
+    .player-name {
+      font-size: 14px;
+      font-weight: 600;
+      background: none;
+      border: none;
+      color: var(--text);
+      width: 140px;
+      padding: 0;
+      cursor: text;
+    }
+    .player-name:focus { outline: 1px solid var(--accent); border-radius: 2px; }
+    .player-scores {
+      display: flex;
+      gap: 14px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .player-scores span strong { color: var(--text); font-size: 16px; }
+    .player-colors {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .color-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .color-dot::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .color-dot.black::before  { background: var(--candy-black); border: 1px solid #555; }
+    .color-dot.green::before  { background: var(--candy-green); }
+    .color-dot.yellow::before { background: var(--candy-yellow); }
+    .color-dot.blue::before   { background: var(--candy-blue); }
+    .color-dot.pink::before   { background: var(--candy-pink); }
+
+    /* ── Center panel ──────────────────────────────────────────────── */
+    #panel-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 24px;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .round-turn-display {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .round-turn-display strong { color: var(--text); font-size: 15px; }
+
+    /* ── Piñata SVG container ──────────────────────────────────────── */
+    #pinata-wrap {
+      position: relative;
+      width: 200px;
+      height: 220px;
+    }
+    #pinata-svg {
+      width: 200px;
+      height: 220px;
+    }
+    /* shake animation */
+    @keyframes shake {
+      0%,100% { transform: rotate(0deg); }
+      15%      { transform: rotate(-6deg); }
+      30%      { transform: rotate(6deg); }
+      45%      { transform: rotate(-4deg); }
+      60%      { transform: rotate(4deg); }
+      75%      { transform: rotate(-2deg); }
+      90%      { transform: rotate(2deg); }
+    }
+    #pinata-svg.state-suspense { animation: shake .5s ease-in-out infinite; transform-origin: top center; }
+    #pinata-svg.state-break    { filter: drop-shadow(0 0 12px var(--accent)); }
+
+    /* candy burst particles */
+    #candy-burst { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+    /* ── Candy pool bar ────────────────────────────────────────────── */
+    .candy-bar-wrap {
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+    }
+    .candy-bar-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .candy-bar-track {
+      width: 100%;
+      height: 12px;
+      background: var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .candy-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      border-radius: 6px;
+      transition: width .4s ease;
+    }
+
+    /* ── Turn tracker ──────────────────────────────────────────────── */
+    .turn-tracker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      justify-content: center;
+      max-width: 340px;
+    }
+    .turn-dot {
+      width: 18px; height: 18px;
+      border-radius: 4px;
+      background: var(--border);
+      font-size: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      transition: background .3s;
+    }
+    .turn-dot.current  { background: var(--surface2); box-shadow: 0 0 0 2px var(--accent2); }
+    .turn-dot.miss     { background: #444; }
+    .turn-dot.drop     { background: var(--accent2); }
+    .turn-dot.break    { background: var(--accent); }
+
+    /* ── ACTIVATE button ───────────────────────────────────────────── */
+    #btn-activate {
+      padding: 16px 48px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background .15s, transform .1s, opacity .2s;
+    }
+    #btn-activate:hover:not(:disabled) { background: #c73350; transform: translateY(-1px); }
+    #btn-activate:active:not(:disabled) { transform: translateY(1px); }
+    #btn-activate:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* ── Event log ─────────────────────────────────────────────────── */
+    #event-log-wrap {
+      width: 100%;
+      max-width: 440px;
+    }
+    #event-log {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      height: 160px;
+      overflow-y: auto;
+      font-size: 11px;
+      font-family: 'Menlo', 'Consolas', monospace;
+      line-height: 1.6;
+    }
+    .log-entry { color: var(--text-muted); }
+    .log-entry .tag  { color: var(--text); font-weight: 600; }
+    .log-entry .miss { color: #666; }
+    .log-entry .drop { color: var(--accent2); }
+    .log-entry .brk  { color: var(--accent); font-weight: 700; }
+    .log-entry .dist { color: #8888cc; padding-left: 10px; }
+
+    /* ── Control panel (right) ─────────────────────────────────────── */
+    #panel-controls { background: var(--surface); font-size: 12px; }
+
+    .ctrl-group { margin-bottom: 14px; }
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+    .ctrl-label { color: var(--text-muted); flex: 1; }
+    .ctrl-input {
+      width: 72px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 4px 6px;
+      font-size: 12px;
+      text-align: right;
+    }
+    .ctrl-input:focus { outline: 1px solid var(--accent); }
+    select.ctrl-input { text-align: left; cursor: pointer; }
+
+    /* phase editor */
+    .phase-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 24px;
+      gap: 4px;
+      margin-bottom: 4px;
+      align-items: center;
+    }
+    .phase-row input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 3px 5px;
+      font-size: 11px;
+      text-align: center;
+    }
+    .phase-row input:focus { outline: 1px solid var(--accent); }
+    .phase-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 24px;
+      gap: 4px;
+      margin-bottom: 3px;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .btn-remove-phase {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      width: 22px; height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-remove-phase:hover { background: var(--accent); color: #fff; }
+    #btn-add-phase {
+      font-size: 11px;
+      padding: 4px 10px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    #btn-add-phase:hover { border-color: var(--accent2); color: var(--accent2); }
+    .phase-warning { font-size: 10px; color: var(--accent); margin-top: 4px; display: none; }
+
+    /* control panel buttons */
+    .ctrl-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .ctrl-btn {
+      width: 100%;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .ctrl-btn.secondary { background: var(--surface2); color: var(--text); }
+    .ctrl-btn.secondary:hover { background: #1a4070; }
+    .ctrl-btn.danger    { background: none; color: var(--accent); }
+    .ctrl-btn.danger:hover { background: var(--accent); color: #fff; }
+    .ctrl-btn.neutral   { background: none; color: var(--text-muted); }
+    .ctrl-btn.neutral:hover { background: var(--border); }
+
+    /* ── Round summary overlay ─────────────────────────────────────── */
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay.visible { display: flex; }
+    .overlay-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      min-width: 340px;
+      max-width: 480px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    }
+    .overlay-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    .overlay-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .summary-table th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-table td {
+      padding: 6px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-table tr.rank-1 td { color: var(--accent2); font-weight: 700; }
+    .winner-banner {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent2);
+      padding: 12px;
+      background: rgba(245,166,35,.1);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+    }
+    #btn-next-round {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    #btn-next-round:hover { background: #c73350; }
+
+    /* break banner */
+    #break-banner {
+      display: none;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--accent);
+      text-align: center;
+      letter-spacing: .08em;
+      animation: pulseBanner .6s ease-in-out infinite alternate;
+    }
+    @keyframes pulseBanner {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: .7; transform: scale(1.05); }
+    }
+    #break-banner.visible { display: block; }
+
+    /* scrollbars */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     LEFT: Player panel
+════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-players">
+  <h2>Players</h2>
+  <div id="player-list"><!-- rendered --></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     CENTER: Piñata + controls + log
+════════════════════════════════════════════════════ -->
+<div id="panel-center">
+
+  <div class="round-turn-display" id="round-turn-display">Round — / — &nbsp;·&nbsp; Turn — of —</div>
+
+  <div id="pinata-wrap">
+    <svg id="pinata-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- string -->
+      <line x1="100" y1="0" x2="100" y2="28" stroke="#a0825a" stroke-width="3" stroke-linecap="round"/>
+      <!-- body -->
+      <ellipse id="pinata-body" cx="100" cy="120" rx="68" ry="72" fill="#e94560"/>
+      <!-- highlight -->
+      <ellipse cx="78" cy="88" rx="22" ry="14" fill="rgba(255,255,255,.18)" transform="rotate(-20,78,88)"/>
+      <!-- fringe rows -->
+      <g id="pinata-fringe" fill="none">
+        <ellipse cx="100" cy="120" rx="68" ry="72" fill="none" stroke="#ffeb3b" stroke-width="9" stroke-dasharray="6 4" opacity=".8"/>
+        <ellipse cx="100" cy="120" rx="55" ry="60" fill="none" stroke="#4caf50" stroke-width="7" stroke-dasharray="5 4" opacity=".7"/>
+        <ellipse cx="100" cy="120" rx="42" ry="48" fill="none" stroke="#2196f3" stroke-width="6" stroke-dasharray="5 4" opacity=".6"/>
+      </g>
+      <!-- hatch (closed by default) -->
+      <g id="pinata-hatch">
+        <ellipse cx="100" cy="158" rx="28" ry="14" fill="#c73350"/>
+        <ellipse cx="100" cy="155" rx="22" ry="10" fill="#a02040"/>
+      </g>
+      <!-- hatch open (drip) — hidden by default -->
+      <g id="pinata-hatch-open" display="none">
+        <path d="M72 152 Q100 178 128 152" stroke="#a02040" stroke-width="4" fill="none"/>
+        <circle cx="100" cy="178" r="5" fill="var(--candy-yellow)" opacity="0.9"/>
+        <circle cx="88"  cy="185" r="4" fill="var(--candy-pink)"   opacity="0.9"/>
+        <circle cx="112" cy="183" r="4" fill="var(--candy-green)"  opacity="0.9"/>
+      </g>
+      <!-- depleted overlay (hidden) -->
+      <g id="pinata-empty" display="none">
+        <ellipse cx="100" cy="120" rx="68" ry="72" fill="rgba(0,0,0,.45)"/>
+        <text x="100" y="125" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="13" font-weight="700">EMPTY</text>
+      </g>
+    </svg>
+    <!-- candy burst canvas -->
+    <canvas id="candy-burst" width="200" height="220"></canvas>
+  </div>
+
+  <div id="break-banner">⚡ PIÑATA BROKEN ⚡</div>
+
+  <div class="candy-bar-wrap">
+    <div class="candy-bar-label" id="candy-bar-label">Candy: — / —</div>
+    <div class="candy-bar-track"><div class="candy-bar-fill" id="candy-bar-fill" style="width:100%"></div></div>
+  </div>
+
+  <div class="turn-tracker" id="turn-tracker"><!-- rendered --></div>
+
+  <button id="btn-activate">ACTIVATE</button>
+
+  <div id="event-log-wrap">
+    <h2>Event Log</h2>
+    <div id="event-log"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     RIGHT: Control panel
+════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-controls">
+  <h2>Control Panel</h2>
+
+  <div class="ctrl-group">
+    <h3>Game Setup</h3>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Players</span>
+      <input class="ctrl-input" type="number" id="cfg-numPlayers" min="2" max="6" step="1">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Total rounds</span>
+      <input class="ctrl-input" type="number" id="cfg-totalRounds" min="1" max="10" step="1">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Candy per round</span>
+      <input class="ctrl-input" type="number" id="cfg-candyPerRound" min="10" max="200" step="5">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">End of round</span>
+      <select class="ctrl-input" id="cfg-endOfRoundBehavior">
+        <option value="release">release</option>
+        <option value="lost">lost</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <h3>Turn Structure</h3>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Min turns</span>
+      <input class="ctrl-input" type="number" id="cfg-minTurns" min="1" max="30" step="1">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Max turns</span>
+      <input class="ctrl-input" type="number" id="cfg-maxTurns" min="1" max="30" step="1">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Drop chance (%)</span>
+      <input class="ctrl-input" type="number" id="cfg-dropChance" min="0" max="100" step="5">
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <h3>Turn Phases</h3>
+    <div class="phase-header">
+      <span>Start</span><span>End</span><span>Min</span><span>Max</span><span></span>
+    </div>
+    <div id="phase-list"><!-- rendered --></div>
+    <div class="phase-warning" id="phase-warning">⚠ Gap in turn coverage</div>
+    <button id="btn-add-phase">+ Add phase</button>
+  </div>
+
+  <div class="ctrl-group">
+    <h3>Final Break</h3>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Start turn</span>
+      <input class="ctrl-input" type="number" id="cfg-finalBreakStartTurn" min="1" max="30" step="1">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Start % </span>
+      <input class="ctrl-input" type="number" id="cfg-finalBreakStartPct" min="0" max="100" step="1">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">End %</span>
+      <input class="ctrl-input" type="number" id="cfg-finalBreakEndPct" min="0" max="100" step="1">
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <h3>Drop Timing (sec)</h3>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Delay min</span>
+      <input class="ctrl-input" type="number" id="cfg-dropDelayMin" min="0" max="10" step="0.25">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Delay max</span>
+      <input class="ctrl-input" type="number" id="cfg-dropDelayMax" min="0" max="10" step="0.25">
+    </div>
+  </div>
+
+  <div class="ctrl-btns">
+    <button class="ctrl-btn secondary" id="btn-restart-round">Restart Round</button>
+    <button class="ctrl-btn danger"    id="btn-restart-game">Restart Game</button>
+    <button class="ctrl-btn neutral"   id="btn-load-defaults">Load Defaults</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     OVERLAY: Round summary
+════════════════════════════════════════════════════ -->
+<div id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-title" id="overlay-title">Round Complete</div>
+    <div class="overlay-subtitle" id="overlay-subtitle"></div>
+    <div id="winner-banner-wrap"></div>
+    <table class="summary-table" id="summary-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Player</th><th>This Round</th><th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="summary-tbody"><!-- rendered --></tbody>
+    </table>
+    <button id="btn-next-round">Start Round 2</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   1. CONFIG
+   ═══════════════════════════════════════════════════════════════ */
+const DEFAULTS = {
+  numPlayers: 4,
+  totalRounds: 3,
+  candyPerRound: 50,
+  endOfRoundBehavior: 'release',
+  minTurns: 10,
+  maxTurns: 16,
+  dropChance: 0.5,
+  phases: [
+    { startTurn: 1,  endTurn: 5,  minCandy: 1, maxCandy: 3 },
+    { startTurn: 6,  endTurn: 10, minCandy: 2, maxCandy: 4 },
+    { startTurn: 11, endTurn: 16, minCandy: 3, maxCandy: 5 },
+  ],
+  finalBreakStartTurn: 10,
+  finalBreakStartPct: 0.05,
+  finalBreakEndPct: 0.40,
+  dropDelayMin: 0,
+  dropDelayMax: 3,
+  candyColors: ['black', 'green', 'yellow', 'blue', 'pink'],
+};
+
+const config = structuredClone(DEFAULTS);
+
+/* ═══════════════════════════════════════════════════════════════
+   2. STATE
+   ═══════════════════════════════════════════════════════════════ */
+const state = {
+  currentRound: 1,
+  currentTurn: 1,
+  totalTurnsThisRound: null,
+  batterIndex: 0,
+  candyPool: {},
+  players: [],
+  roundOver: false,
+  gameOver: false,
+  uiPhase: 'idle',        // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
+  turnHistory: [],        // array of { type: 'miss'|'drop'|'break' } per turn slot
+  lastTurnResult: null,   // holds result object for current turn display
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   3. GAME LOGIC  (no DOM access)
+   ═══════════════════════════════════════════════════════════════ */
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function buildCandyPool() {
+  const pool = {};
+  const base = Math.floor(config.candyPerRound / config.candyColors.length);
+  let remainder = config.candyPerRound % config.candyColors.length;
+  for (const color of config.candyColors) {
+    pool[color] = base + (remainder-- > 0 ? 1 : 0);
+  }
+  return pool;
+}
+
+function totalCandyInPool(pool) {
+  return Object.values(pool).reduce((s, n) => s + n, 0);
+}
+
+function buildPlayers(count, existing) {
+  const players = [];
+  for (let i = 0; i < count; i++) {
+    const name = existing?.[i]?.name ?? `Player ${i + 1}`;
+    players.push({ name, roundCandy: 0, totalCandy: 0, colorCounts: {} });
+  }
+  return players;
+}
+
+function initGame() {
+  state.currentRound = 1;
+  state.batterIndex = 0;
+  state.roundOver = false;
+  state.gameOver = false;
+  state.lastTurnResult = null;
+  state.players = buildPlayers(config.numPlayers, state.players);
+  initRound(true);
+}
+
+function initRound(freshGame = false) {
+  state.currentTurn = 1;
+  state.totalTurnsThisRound = randInt(config.minTurns, config.maxTurns);
+  state.candyPool = buildCandyPool();
+  state.roundOver = false;
+  state.uiPhase = 'idle';
+  state.lastTurnResult = null;
+  state.turnHistory = [];
+  if (!freshGame) {
+    // reset round candy but keep totals
+    for (const p of state.players) {
+      p.roundCandy = 0;
+      p.colorCounts = {};
+    }
+  }
+}
+
+function getPhaseForTurn(turn) {
+  let matched = null;
+  for (const phase of config.phases) {
+    if (turn >= phase.startTurn && turn <= phase.endTurn) {
+      matched = phase;
+    }
+  }
+  return matched ?? config.phases.at(-1);
+}
+
+function checkFinalBreak(turn) {
+  if (turn < config.finalBreakStartTurn) return false;
+  const { finalBreakStartTurn, maxTurns, finalBreakStartPct, finalBreakEndPct } = config;
+  const denom = maxTurns - finalBreakStartTurn;
+  const chance = denom <= 0
+    ? finalBreakEndPct
+    : finalBreakStartPct + (turn - finalBreakStartTurn) / denom * (finalBreakEndPct - finalBreakStartPct);
+  return Math.random() < chance;
+}
+
+function drawCandy(n, pool) {
+  const drawn = [];
+  const colors = config.candyColors;
+  let remaining = totalCandyInPool(pool);
+  for (let i = 0; i < n && remaining > 0; i++) {
+    let r = randInt(0, remaining - 1);
+    for (const color of colors) {
+      if (r < pool[color]) {
+        drawn.push(color);
+        pool[color]--;
+        remaining--;
+        break;
+      }
+      r -= pool[color];
+    }
+  }
+  return drawn;
+}
+
+function distributeCandy(pieces, batterIndex) {
+  const dist = {};
+  const eligible = state.players
+    .map((_, i) => i)
+    .filter(i => i !== batterIndex);
+  for (const color of pieces) {
+    const recipient = eligible[randInt(0, eligible.length - 1)];
+    dist[recipient] = (dist[recipient] ?? 0) + 1;
+    state.players[recipient].roundCandy++;
+    state.players[recipient].totalCandy++;
+    state.players[recipient].colorCounts[color] =
+      (state.players[recipient].colorCounts[color] ?? 0) + 1;
+  }
+  return dist;
+}
+
+function advanceBatter() {
+  state.batterIndex = (state.batterIndex + 1) % state.players.length;
+}
+
+function computeBreakChancePct(turn) {
+  if (turn < config.finalBreakStartTurn) return null;
+  const { finalBreakStartTurn, maxTurns, finalBreakStartPct, finalBreakEndPct } = config;
+  const denom = maxTurns - finalBreakStartTurn;
+  const chance = denom <= 0
+    ? finalBreakEndPct
+    : finalBreakStartPct + (turn - finalBreakStartTurn) / denom * (finalBreakEndPct - finalBreakStartPct);
+  return Math.round(chance * 100);
+}
+
+function resolveEndOfRound() {
+  // Called when turns are exhausted (no final break)
+  const remaining = totalCandyInPool(state.candyPool);
+  let result = { type: 'end', remaining };
+  if (config.endOfRoundBehavior === 'release' && remaining > 0) {
+    const pieces = drawCandy(remaining, state.candyPool);
+    const dist = distributeCandy(pieces, state.batterIndex);
+    result.pieces = pieces;
+    result.dist = dist;
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. RENDER  (all DOM writes live here)
+   ═══════════════════════════════════════════════════════════════ */
+
+function renderAll() {
+  renderPlayers();
+  renderCenterPanel();
+  renderControlPanel();
+  renderOverlay();
+}
+
+function renderPlayers() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  state.players.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'player-card' + (i === state.batterIndex && !state.roundOver && !state.gameOver ? ' is-batter' : '');
+
+    const nameInput = document.createElement('input');
+    nameInput.className = 'player-name';
+    nameInput.value = p.name;
+    nameInput.dataset.index = i;
+    nameInput.addEventListener('change', e => {
+      state.players[i].name = e.target.value.trim() || `Player ${i + 1}`;
+      renderAll();
+    });
+    card.appendChild(nameInput);
+
+    const scores = document.createElement('div');
+    scores.className = 'player-scores';
+    scores.innerHTML =
+      `<span>Round: <strong>${p.roundCandy}</strong></span>` +
+      `<span>Total: <strong>${p.totalCandy}</strong></span>`;
+    card.appendChild(scores);
+
+    // color breakdown
+    const colors = document.createElement('div');
+    colors.className = 'player-colors';
+    for (const color of config.candyColors) {
+      const count = p.colorCounts[color] ?? 0;
+      if (count > 0) {
+        const dot = document.createElement('span');
+        dot.className = `color-dot ${color}`;
+        dot.textContent = count;
+        colors.appendChild(dot);
+      }
+    }
+    card.appendChild(colors);
+    list.appendChild(card);
+  });
+}
+
+function renderCenterPanel() {
+  // Round/turn display
+  const rtd = document.getElementById('round-turn-display');
+  rtd.innerHTML = state.gameOver
+    ? '<strong>Game Over</strong>'
+    : `Round <strong>${state.currentRound}</strong> of <strong>${config.totalRounds}</strong>` +
+      ` &nbsp;·&nbsp; Turn <strong>${state.currentTurn}</strong> of <strong>${state.totalTurnsThisRound ?? '?'}</strong>`;
+
+  // Candy bar
+  const total = config.candyPerRound;
+  const remaining = totalCandyInPool(state.candyPool);
+  const pct = total > 0 ? (remaining / total) * 100 : 0;
+  document.getElementById('candy-bar-label').textContent = `Candy: ${remaining} / ${total}`;
+  document.getElementById('candy-bar-fill').style.width = `${pct}%`;
+
+  // Piñata visual state
+  const svg = document.getElementById('pinata-svg');
+  svg.classList.remove('state-suspense', 'state-break');
+  document.getElementById('pinata-hatch').setAttribute('display', 'block');
+  document.getElementById('pinata-hatch-open').setAttribute('display', 'none');
+  document.getElementById('pinata-empty').setAttribute('display', 'none');
+
+  if (state.uiPhase === 'suspense') {
+    svg.classList.add('state-suspense');
+  } else if (state.uiPhase === 'break') {
+    svg.classList.add('state-break');
+    document.getElementById('pinata-hatch').setAttribute('display', 'none');
+    document.getElementById('pinata-hatch-open').setAttribute('display', 'block');
+  } else if (state.uiPhase === 'result' && state.lastTurnResult?.type === 'drop') {
+    document.getElementById('pinata-hatch').setAttribute('display', 'none');
+    document.getElementById('pinata-hatch-open').setAttribute('display', 'block');
+  }
+  if (remaining === 0 && state.uiPhase !== 'suspense') {
+    document.getElementById('pinata-empty').setAttribute('display', 'block');
+  }
+
+  // Break banner
+  const banner = document.getElementById('break-banner');
+  banner.classList.toggle('visible', state.uiPhase === 'break');
+
+  // Turn tracker
+  renderTurnTracker();
+
+  // Activate button
+  const btn = document.getElementById('btn-activate');
+  const blocked = state.uiPhase === 'suspense' || state.roundOver || state.gameOver;
+  btn.disabled = blocked;
+  btn.textContent = state.uiPhase === 'suspense' ? 'ACTIVATING…' : 'ACTIVATE';
+}
+
+function renderTurnTracker() {
+  const tracker = document.getElementById('turn-tracker');
+  tracker.innerHTML = '';
+  const total = state.totalTurnsThisRound ?? 0;
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    const hist = state.turnHistory[i];
+    dot.className = 'turn-dot';
+    if (hist) {
+      dot.classList.add(hist.type);
+    } else if (i + 1 === state.currentTurn && !state.roundOver) {
+      dot.classList.add('current');
+    }
+    dot.title = `Turn ${i + 1}`;
+    tracker.appendChild(dot);
+  }
+}
+
+function renderControlPanel() {
+  // Simple inputs
+  const map = {
+    'cfg-numPlayers': config.numPlayers,
+    'cfg-totalRounds': config.totalRounds,
+    'cfg-candyPerRound': config.candyPerRound,
+    'cfg-endOfRoundBehavior': config.endOfRoundBehavior,
+    'cfg-minTurns': config.minTurns,
+    'cfg-maxTurns': config.maxTurns,
+    'cfg-dropChance': Math.round(config.dropChance * 100),
+    'cfg-finalBreakStartTurn': config.finalBreakStartTurn,
+    'cfg-finalBreakStartPct': Math.round(config.finalBreakStartPct * 100),
+    'cfg-finalBreakEndPct': Math.round(config.finalBreakEndPct * 100),
+    'cfg-dropDelayMin': config.dropDelayMin,
+    'cfg-dropDelayMax': config.dropDelayMax,
+  };
+  for (const [id, val] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el && document.activeElement !== el) el.value = val;
+  }
+
+  // Phase list
+  renderPhaseList();
+}
+
+function renderPhaseList() {
+  const list = document.getElementById('phase-list');
+  list.innerHTML = '';
+  config.phases.forEach((phase, idx) => {
+    const row = document.createElement('div');
+    row.className = 'phase-row';
+    ['startTurn', 'endTurn', 'minCandy', 'maxCandy'].forEach(field => {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.value = phase[field];
+      inp.min = 1;
+      inp.dataset.idx = idx;
+      inp.dataset.field = field;
+      inp.addEventListener('change', e => {
+        const v = parseInt(e.target.value, 10);
+        if (!isNaN(v)) config.phases[idx][field] = v;
+        checkPhaseWarning();
+        renderAll();
+      });
+      row.appendChild(inp);
+    });
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove-phase';
+    removeBtn.textContent = '×';
+    removeBtn.title = 'Remove phase';
+    removeBtn.addEventListener('click', () => {
+      if (config.phases.length > 1) {
+        config.phases.splice(idx, 1);
+        checkPhaseWarning();
+        renderAll();
+      }
+    });
+    row.appendChild(removeBtn);
+    list.appendChild(row);
+  });
+  checkPhaseWarning();
+}
+
+function checkPhaseWarning() {
+  if (!state.totalTurnsThisRound) return;
+  const max = state.totalTurnsThisRound;
+  let gap = false;
+  for (let t = 1; t <= max; t++) {
+    if (!config.phases.some(p => t >= p.startTurn && t <= p.endTurn)) {
+      gap = true; break;
+    }
+  }
+  document.getElementById('phase-warning').style.display = gap ? 'block' : 'none';
+}
+
+function renderOverlay() {
+  const overlay = document.getElementById('overlay');
+  if (state.uiPhase !== 'summary') {
+    overlay.classList.remove('visible');
+    return;
+  }
+  overlay.classList.add('visible');
+
+  const isGameOver = state.gameOver;
+  document.getElementById('overlay-title').textContent =
+    isGameOver ? '🎉 Game Over!' : `Round ${state.currentRound} Complete`;
+  document.getElementById('overlay-subtitle').textContent =
+    isGameOver
+      ? `Final results after ${config.totalRounds} rounds`
+      : `After ${state.totalTurnsThisRound} turns`;
+
+  // winner banner only on game over
+  const winnerWrap = document.getElementById('winner-banner-wrap');
+  if (isGameOver) {
+    const maxCandy = Math.max(...state.players.map(p => p.totalCandy));
+    const winners = state.players.filter(p => p.totalCandy === maxCandy).map(p => p.name);
+    winnerWrap.innerHTML = `<div class="winner-banner">🏆 ${winners.join(' & ')} wins!</div>`;
+  } else {
+    winnerWrap.innerHTML = '';
+  }
+
+  // summary table — sort by round candy desc, fallback total
+  const sorted = state.players
+    .map((p, i) => ({ ...p, _i: i }))
+    .sort((a, b) => (b.roundCandy - a.roundCandy) || (b.totalCandy - a.totalCandy));
+
+  const tbody = document.getElementById('summary-tbody');
+  tbody.innerHTML = '';
+  sorted.forEach((p, rank) => {
+    const tr = document.createElement('tr');
+    if (rank === 0) tr.classList.add('rank-1');
+    tr.innerHTML = `<td>${rank + 1}</td><td>${p.name}</td><td>${p.roundCandy}</td><td>${p.totalCandy}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // next-round button label
+  const nextBtn = document.getElementById('btn-next-round');
+  if (isGameOver) {
+    nextBtn.textContent = 'See Final Results';
+    nextBtn.disabled = true;
+    nextBtn.style.opacity = '.5';
+    nextBtn.style.cursor = 'default';
+  } else {
+    nextBtn.textContent = `Start Round ${state.currentRound + 1}`;
+    nextBtn.disabled = false;
+    nextBtn.style.opacity = '1';
+    nextBtn.style.cursor = 'pointer';
+  }
+}
+
+/* ── Event log ─────────────────────────────────────────────────── */
+function logTurn(html) {
+  const log = document.getElementById('event-log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = html;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function colorSpan(color) {
+  return `<span class="color-dot ${color}" style="display:inline-flex;align-items:center;gap:2px">${color}</span>`;
+}
+
+function formatPieces(pieces) {
+  const counts = {};
+  for (const c of pieces) counts[c] = (counts[c] ?? 0) + 1;
+  return Object.entries(counts)
+    .map(([c, n]) => `${n} ${colorSpan(c)}`)
+    .join(', ');
+}
+
+function formatDist(dist) {
+  return state.players
+    .map((p, i) => dist[i] ? `${p.name} got ${dist[i]}` : null)
+    .filter(Boolean)
+    .join(', ');
+}
+
+/* ── Candy burst animation ─────────────────────────────────────── */
+function triggerCandyBurst(count) {
+  const canvas = document.getElementById('candy-burst');
+  const ctx = canvas.getContext('2d');
+  const colors = ['#2d2d2d', '#4caf50', '#ffeb3b', '#2196f3', '#e91e8c'];
+  const particles = Array.from({ length: Math.min(count * 3, 40) }, () => ({
+    x: 90 + Math.random() * 20,
+    y: 160,
+    vx: (Math.random() - .5) * 5,
+    vy: -(Math.random() * 4 + 2),
+    color: colors[Math.floor(Math.random() * colors.length)],
+    r: Math.random() * 4 + 3,
+    life: 1,
+  }));
+
+  function frame() {
+    ctx.clearRect(0, 0, 200, 220);
+    let alive = false;
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += .15;
+      p.life -= .025;
+      if (p.life <= 0) continue;
+      alive = true;
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. EVENT LISTENERS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── ACTIVATE ────────────────────────────────────────────────── */
+document.getElementById('btn-activate').addEventListener('click', () => {
+  if (state.uiPhase !== 'idle') return;
+
+  const turn = state.currentTurn;
+  const batter = state.players[state.batterIndex];
+
+  // Suspense delay
+  const delayMin = config.dropDelayMin;
+  const delayMax = config.dropDelayMax;
+  const steps = Math.round((delayMax - delayMin) / 0.25);
+  const delayMs = Math.round((delayMin + randInt(0, steps) * 0.25) * 1000);
+
+  state.uiPhase = 'suspense';
+  renderAll();
+
+  setTimeout(() => {
+    // 1. Final break check
+    if (turn >= config.finalBreakStartTurn && checkFinalBreak(turn)) {
+      // --- FINAL BREAK ---
+      const pieces = drawCandy(totalCandyInPool(state.candyPool), state.candyPool);
+      const dist = distributeCandy(pieces, state.batterIndex);
+      state.uiPhase = 'break';
+      state.turnHistory[turn - 1] = { type: 'break' };
+
+      logTurn(
+        `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
+        ` <span class="brk">⚡ FINAL BREAK — ${pieces.length} pieces released!</span><br>` +
+        (pieces.length > 0
+          ? `<span class="dist">→ ${formatDist(dist)}</span>`
+          : `<span class="dist">→ Piñata was already empty</span>`)
+      );
+
+      triggerCandyBurst(pieces.length);
+
+      state.roundOver = true;
+      if (state.currentRound >= config.totalRounds) state.gameOver = true;
+      state.lastTurnResult = { type: 'break', pieces, dist };
+      renderAll();
+
+      setTimeout(() => {
+        state.uiPhase = 'summary';
+        renderAll();
+      }, 1800);
+      return;
+    }
+
+    // 2. Drop check
+    if (Math.random() >= config.dropChance) {
+      // --- MISS ---
+      state.uiPhase = 'result';
+      state.turnHistory[turn - 1] = { type: 'miss' };
+      logTurn(
+        `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
+        ` <span class="miss">${batter.name} (batter) — No drop.</span>`
+      );
+      state.lastTurnResult = { type: 'miss' };
+      finishTurn();
+      return;
+    }
+
+    // 3. Candy amount
+    const phase = getPhaseForTurn(turn);
+    const amount = Math.min(randInt(phase.minCandy, phase.maxCandy), totalCandyInPool(state.candyPool));
+
+    if (amount === 0) {
+      // pool exhausted
+      state.uiPhase = 'result';
+      state.turnHistory[turn - 1] = { type: 'miss' };
+      logTurn(
+        `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
+        ` <span class="miss">${batter.name} (batter) — Piñata empty, no candy to drop.</span>`
+      );
+      state.lastTurnResult = { type: 'miss' };
+      finishTurn();
+      return;
+    }
+
+    // 4. Draw & distribute
+    const pieces = drawCandy(amount, state.candyPool);
+    const dist = distributeCandy(pieces, state.batterIndex);
+    state.uiPhase = 'result';
+    state.turnHistory[turn - 1] = { type: 'drop' };
+    state.lastTurnResult = { type: 'drop', pieces, dist };
+
+    logTurn(
+      `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
+      ` <span class="drop">${batter.name} (batter) — ${pieces.length} piece${pieces.length !== 1 ? 's' : ''} fell: ${formatPieces(pieces)}</span><br>` +
+      `<span class="dist">→ ${formatDist(dist)}</span>`
+    );
+    triggerCandyBurst(pieces.length);
+    finishTurn();
+
+  }, delayMs);
+});
+
+function finishTurn() {
+  const turn = state.currentTurn;
+  advanceBatter();
+
+  if (turn >= state.totalTurnsThisRound) {
+    // Natural end of round
+    const endResult = resolveEndOfRound();
+    state.roundOver = true;
+    if (state.currentRound >= config.totalRounds) state.gameOver = true;
+
+    if (config.endOfRoundBehavior === 'release' && endResult.remaining > 0) {
+      logTurn(
+        `<span class="tag">[Round ${state.currentRound} / End]</span>` +
+        ` <span class="drop">Turns exhausted — ${endResult.pieces?.length ?? 0} piece${endResult.pieces?.length !== 1 ? 's' : ''} released.</span><br>` +
+        (endResult.dist ? `<span class="dist">→ ${formatDist(endResult.dist)}</span>` : '')
+      );
+    } else if (config.endOfRoundBehavior === 'lost' && endResult.remaining > 0) {
+      logTurn(
+        `<span class="tag">[Round ${state.currentRound} / End]</span>` +
+        ` <span class="miss">Turns exhausted — ${endResult.remaining} piece${endResult.remaining !== 1 ? 's' : ''} lost.</span>`
+      );
+    }
+
+    renderAll();
+    setTimeout(() => {
+      state.uiPhase = 'summary';
+      renderAll();
+    }, 800);
+  } else {
+    state.currentTurn++;
+    state.uiPhase = 'idle';
+    renderAll();
+  }
+}
+
+/* ── Next round / overlay ────────────────────────────────────── */
+document.getElementById('btn-next-round').addEventListener('click', () => {
+  if (state.gameOver) return;
+  state.currentRound++;
+  initRound();
+  document.getElementById('event-log').innerHTML = '';
+  renderAll();
+});
+
+/* ── Control panel inputs ────────────────────────────────────── */
+function bindConfigInput(id, key, transform) {
+  document.getElementById(id).addEventListener('change', e => {
+    const v = transform(e.target.value);
+    if (v !== null && !isNaN(v)) config[key] = v;
+    renderAll();
+  });
+}
+bindConfigInput('cfg-numPlayers',        'numPlayers',        v => { const n = parseInt(v); if (n >= 2 && n <= 6) { const old = state.players; state.players = buildPlayers(n, old); return n; } return null; });
+bindConfigInput('cfg-totalRounds',       'totalRounds',       v => parseInt(v));
+bindConfigInput('cfg-candyPerRound',     'candyPerRound',     v => parseInt(v));
+bindConfigInput('cfg-minTurns',          'minTurns',          v => parseInt(v));
+bindConfigInput('cfg-maxTurns',          'maxTurns',          v => parseInt(v));
+bindConfigInput('cfg-dropChance',        'dropChance',        v => parseInt(v) / 100);
+bindConfigInput('cfg-finalBreakStartTurn','finalBreakStartTurn', v => parseInt(v));
+bindConfigInput('cfg-finalBreakStartPct','finalBreakStartPct', v => parseInt(v) / 100);
+bindConfigInput('cfg-finalBreakEndPct',  'finalBreakEndPct',  v => parseInt(v) / 100);
+bindConfigInput('cfg-dropDelayMin',      'dropDelayMin',      v => parseFloat(v));
+bindConfigInput('cfg-dropDelayMax',      'dropDelayMax',      v => parseFloat(v));
+
+document.getElementById('cfg-endOfRoundBehavior').addEventListener('change', e => {
+  config.endOfRoundBehavior = e.target.value;
+});
+
+/* ── Add phase ───────────────────────────────────────────────── */
+document.getElementById('btn-add-phase').addEventListener('click', () => {
+  const last = config.phases.at(-1);
+  config.phases.push({
+    startTurn: (last?.endTurn ?? 0) + 1,
+    endTurn:   (last?.endTurn ?? 0) + 5,
+    minCandy:  last?.minCandy ?? 1,
+    maxCandy:  last?.maxCandy ?? 3,
+  });
+  checkPhaseWarning();
+  renderAll();
+});
+
+/* ── Control buttons ─────────────────────────────────────────── */
+document.getElementById('btn-restart-round').addEventListener('click', () => {
+  if (state.uiPhase === 'suspense') return;
+  state.batterIndex = 0;
+  initRound();
+  document.getElementById('event-log').innerHTML = '';
+  renderAll();
+});
+
+document.getElementById('btn-restart-game').addEventListener('click', () => {
+  if (state.uiPhase === 'suspense') return;
+  initGame();
+  document.getElementById('event-log').innerHTML = '';
+  renderAll();
+});
+
+document.getElementById('btn-load-defaults').addEventListener('click', () => {
+  Object.assign(config, structuredClone(DEFAULTS));
+  initGame();
+  document.getElementById('event-log').innerHTML = '';
+  renderAll();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   6. INIT
+   ═══════════════════════════════════════════════════════════════ */
+initGame();
+renderAll();
+</script>
+</body>
+</html>
