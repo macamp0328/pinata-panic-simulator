@@ -131,6 +131,17 @@
     #btn-activate:active:not(:disabled) { transform: translateY(1px); }
     #btn-activate:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
+    /* ── Sound row & mute button ───────────────────────────────────── */
+    #sound-row { display: flex; align-items: center; gap: 10px; }
+    #btn-mute {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--surface3); border: 1px solid var(--border);
+      font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s; flex-shrink: 0;
+    }
+    #btn-mute:hover { background: #d0d8ee; }
+    #btn-mute.muted { opacity: .4; }
+
     /* ── Event log ─────────────────────────────────────────────────── */
     #event-log-wrap { width: 100%; max-width: 440px; }
     #event-log {
@@ -373,7 +384,10 @@
 
   <div class="turn-tracker" id="turn-tracker"></div>
 
-  <button id="btn-activate">ACTIVATE</button>
+  <div id="sound-row">
+    <button id="btn-activate">ACTIVATE</button>
+    <button id="btn-mute" title="Toggle sound">🔊</button>
+  </div>
 
   <div id="event-log-wrap">
     <h2>Event Log</h2>
@@ -1007,12 +1021,83 @@ function triggerCandyBurst(count) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   5. EVENT LISTENERS
+   5. AUDIO
+   ═══════════════════════════════════════════════════════════════ */
+
+let _audioCtx  = null;
+let soundMuted = false;
+
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function tone(freq, type, startTime, duration, volume = 0.35, freqEnd = null) {
+  const ctx  = getAudioCtx();
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  if (freqEnd !== null) osc.frequency.linearRampToValueAtTime(freqEnd, startTime + duration);
+  gain.gain.setValueAtTime(volume, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+
+function soundSwing() {
+  if (soundMuted) return;
+  const t = getAudioCtx().currentTime;
+  tone(520, 'sine', t, 0.18, 0.28, 160);
+}
+
+function soundCandyPop(index) {
+  if (soundMuted) return;
+  const ctx  = getAudioCtx();
+  const t    = ctx.currentTime + index * 0.07;
+  const freq = 700 + (index % 5) * 180;
+  tone(freq, 'square', t, 0.07, 0.12, freq * 1.3);
+}
+
+function soundMiss() {
+  if (soundMuted) return;
+  const t = getAudioCtx().currentTime;
+  tone(120, 'sine', t, 0.22, 0.2, 60);
+}
+
+function soundBreak() {
+  if (soundMuted) return;
+  const ctx = getAudioCtx();
+  const t   = ctx.currentTime;
+  tone(220, 'sawtooth', t,        0.3,  0.45, 40);
+  tone(300, 'square',   t + 0.05, 0.2,  0.35, 60);
+  [523, 659, 784, 1047].forEach((f, i) => tone(f, 'sine', t + 0.18 + i * 0.09, 0.55, 0.22));
+}
+
+function soundRoundEnd() {
+  if (soundMuted) return;
+  const t = getAudioCtx().currentTime;
+  [523, 659, 784].forEach((f, i) => tone(f, 'sine', t + i * 0.18, 0.32, 0.22));
+}
+
+function soundGameOver() {
+  if (soundMuted) return;
+  const t = getAudioCtx().currentTime;
+  [523, 659, 784, 1047, 1047].forEach((f, i) => {
+    tone(f, 'sine', t + i * 0.22, i === 4 ? 0.75 : 0.22, 0.28);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. EVENT LISTENERS
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── ACTIVATE ────────────────────────────────────────────────── */
 document.getElementById('btn-activate').addEventListener('click', () => {
   if (state.uiPhase !== 'idle') return;
+  soundSwing();
 
   const turn   = state.currentTurn;
   const batter = state.players[state.batterIndex];
@@ -1034,10 +1119,15 @@ document.getElementById('btn-activate').addEventListener('click', () => {
 
       logEntry({ type: 'break', round: state.currentRound, turn, batterName: batter.name, pieces, dist });
       triggerCandyBurst(pieces.length);
+      soundBreak();
+      pieces.forEach((_, i) => soundCandyPop(i));
       state.roundOver = true;
       if (state.currentRound >= config.totalRounds) state.gameOver = true;
       renderAll();
-      setTimeout(() => { state.uiPhase = 'summary'; renderAll(); }, 1800);
+      setTimeout(() => {
+        if (state.gameOver) soundGameOver(); else soundRoundEnd();
+        state.uiPhase = 'summary'; renderAll();
+      }, 1800);
       return;
     }
 
@@ -1047,6 +1137,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
       state.turnHistory[turn - 1] = { type: 'miss' };
       state.lastTurnResult = { type: 'miss' };
       logEntry({ type: 'miss', round: state.currentRound, turn, batterName: batter.name });
+      soundMiss();
       finishTurn(); return;
     }
 
@@ -1071,6 +1162,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
 
     logEntry({ type: 'drop', round: state.currentRound, turn, batterName: batter.name, pieces, dist });
     triggerCandyBurst(pieces.length);
+    pieces.forEach((_, i) => soundCandyPop(i));
     finishTurn();
 
   }, delay);
@@ -1092,13 +1184,25 @@ function finishTurn() {
     }
 
     renderAll();
-    setTimeout(() => { state.uiPhase = 'summary'; renderAll(); }, 800);
+    setTimeout(() => {
+      if (state.gameOver) soundGameOver(); else soundRoundEnd();
+      state.uiPhase = 'summary'; renderAll();
+    }, 800);
   } else {
     state.currentTurn++;
     state.uiPhase = 'idle';
     renderAll();
   }
 }
+
+/* ── Mute toggle ─────────────────────────────────────────────── */
+document.getElementById('btn-mute').addEventListener('click', () => {
+  soundMuted = !soundMuted;
+  const btn = document.getElementById('btn-mute');
+  btn.textContent = soundMuted ? '🔇' : '🔊';
+  btn.classList.toggle('muted', soundMuted);
+  getAudioCtx(); // warm up context on first interaction
+});
 
 /* ── Next round ──────────────────────────────────────────────── */
 document.getElementById('btn-next-round').addEventListener('click', () => {
