@@ -231,31 +231,34 @@
     .ctrl-btn.neutral { background: none; color: var(--text-muted); }
     .ctrl-btn.neutral:hover { background: var(--surface3); }
 
-    /* ── Round summary overlay ─────────────────────────────────────── */
-    #overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75);
-      z-index: 100; align-items: center; justify-content: center;
+    /* ── Round summary panel (inline, replaces piñata controls) ───── */
+    #pinata-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+
+    #summary-panel {
+      display: none; width: 100%; max-width: 440px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px 24px; box-shadow: var(--shadow);
     }
-    #overlay.visible { display: flex; }
-    .overlay-card {
-      background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
-      padding: 28px 32px; min-width: 340px; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,.6);
-    }
-    .overlay-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; text-align: center; }
-    .overlay-subtitle { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
+    #summary-panel.visible { display: block; }
+    .summary-title { font-size: 20px; font-weight: 700; margin-bottom: 3px; text-align: center; }
+    .summary-subtitle { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 16px; }
     .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
     .summary-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); padding: 4px 6px; border-bottom: 1px solid var(--border); }
     .summary-table td { padding: 6px 6px; border-bottom: 1px solid var(--border); }
     .summary-table tr.rank-1 td { color: var(--accent2); font-weight: 700; }
     .winner-banner {
-      text-align: center; font-size: 18px; font-weight: 700; color: var(--accent2);
-      padding: 12px; background: rgba(245,166,35,.1); border-radius: var(--radius); margin-bottom: 16px;
+      text-align: center; font-size: 16px; font-weight: 700; color: var(--accent2);
+      padding: 10px; background: rgba(245,166,35,.1); border-radius: var(--radius); margin-bottom: 14px;
     }
-    #btn-next-round {
-      display: block; width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
-      background: var(--accent); color: #fff; border: none; border-radius: var(--radius); cursor: pointer;
+    .summary-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .summary-actions button {
+      flex: 1; padding: 11px; font-size: 14px; font-weight: 700;
+      border-radius: var(--radius); border: none; cursor: pointer; transition: background .15s;
     }
+    #btn-next-round { background: var(--accent); color: #fff; }
     #btn-next-round:hover { background: #c73350; }
+    #btn-play-again { background: var(--surface3); color: var(--text); border: 1px solid var(--border) !important; }
+    #btn-play-again:hover { background: #d0d8ee; }
 
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -275,6 +278,7 @@
 
   <div class="round-turn-display" id="round-turn-display">Round — / — &nbsp;·&nbsp; Turn — of —</div>
 
+  <div id="pinata-controls">
   <div id="pinata-wrap">
     <svg id="pinata-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -393,6 +397,21 @@
     <button id="btn-activate">ACTIVATE</button>
     <button id="btn-mute" title="Toggle sound">🔊</button>
   </div>
+  </div><!-- end #pinata-controls -->
+
+  <div id="summary-panel">
+    <div class="summary-title" id="summary-title">Round Complete</div>
+    <div class="summary-subtitle" id="summary-subtitle"></div>
+    <div id="winner-banner-wrap"></div>
+    <table class="summary-table">
+      <thead><tr><th>#</th><th>Player</th><th>This Round</th><th>Total</th></tr></thead>
+      <tbody id="summary-tbody"></tbody>
+    </table>
+    <div class="summary-actions">
+      <button id="btn-next-round">Start Round 2</button>
+      <button id="btn-play-again" style="display:none">Play Again</button>
+    </div>
+  </div>
 
   <div id="event-log-wrap">
     <h2>Event Log</h2>
@@ -492,20 +511,6 @@
     <button class="ctrl-btn secondary" id="btn-restart-round">Restart Round</button>
     <button class="ctrl-btn danger"    id="btn-restart-game">Restart Game</button>
     <button class="ctrl-btn neutral"   id="btn-load-defaults">Load Defaults</button>
-  </div>
-</div>
-
-<!-- OVERLAY: Round summary -->
-<div id="overlay">
-  <div class="overlay-card">
-    <div class="overlay-title" id="overlay-title">Round Complete</div>
-    <div class="overlay-subtitle" id="overlay-subtitle"></div>
-    <div id="winner-banner-wrap"></div>
-    <table class="summary-table">
-      <thead><tr><th>#</th><th>Player</th><th>This Round</th><th>Total</th></tr></thead>
-      <tbody id="summary-tbody"></tbody>
-    </table>
-    <button id="btn-next-round">Start Round 2</button>
   </div>
 </div>
 
@@ -726,7 +731,6 @@ function renderAll() {
   renderPlayers();
   renderCenterPanel();
   renderControlPanel();
-  renderOverlay();
 }
 
 function renderPlayers() {
@@ -857,6 +861,8 @@ function renderCenterPanel() {
   const btn = document.getElementById('btn-activate');
   btn.disabled = state.uiPhase === 'suspense' || state.roundOver || state.gameOver;
   btn.textContent = state.uiPhase === 'suspense' ? 'ACTIVATING…' : 'ACTIVATE';
+
+  renderSummaryPanel();
 }
 
 function renderTurnTracker() {
@@ -943,15 +949,16 @@ function checkPhaseWarning() {
   document.getElementById('phase-warning').style.display = gap ? 'block' : 'none';
 }
 
-function renderOverlay() {
-  const overlay = document.getElementById('overlay');
-  if (state.uiPhase !== 'summary') { overlay.classList.remove('visible'); return; }
-  overlay.classList.add('visible');
+function renderSummaryPanel() {
+  const inSummary = state.uiPhase === 'summary';
+  document.getElementById('pinata-controls').style.display = inSummary ? 'none' : '';
+  document.getElementById('summary-panel').classList.toggle('visible', inSummary);
+  if (!inSummary) return;
 
   const isGameOver = state.gameOver;
-  document.getElementById('overlay-title').textContent =
+  document.getElementById('summary-title').textContent =
     isGameOver ? '🎉 Game Over!' : `Round ${state.currentRound} Complete`;
-  document.getElementById('overlay-subtitle').textContent =
+  document.getElementById('summary-subtitle').textContent =
     isGameOver
       ? `Final results after ${config.totalRounds} rounds`
       : `After ${state.totalTurnsThisRound} turns`;
@@ -976,13 +983,10 @@ function renderOverlay() {
     tbody.appendChild(tr);
   });
 
-  const nextBtn = document.getElementById('btn-next-round');
-  if (isGameOver) {
-    nextBtn.textContent = 'See Final Results';
-    nextBtn.disabled = true; nextBtn.style.opacity = '.5'; nextBtn.style.cursor = 'default';
-  } else {
-    nextBtn.textContent = `Start Round ${state.currentRound + 1}`;
-    nextBtn.disabled = false; nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer';
+  document.getElementById('btn-next-round').style.display = isGameOver ? 'none' : '';
+  document.getElementById('btn-play-again').style.display = isGameOver ? '' : 'none';
+  if (!isGameOver) {
+    document.getElementById('btn-next-round').textContent = `Start Round ${state.currentRound + 1}`;
   }
 }
 
@@ -1258,11 +1262,16 @@ document.getElementById('btn-mute').addEventListener('click', () => {
   getAudioCtx(); // warm up context on first interaction
 });
 
-/* ── Next round ──────────────────────────────────────────────── */
+/* ── Next round / Play again ─────────────────────────────────── */
 document.getElementById('btn-next-round').addEventListener('click', () => {
-  if (state.gameOver) return;
   state.currentRound++;
   initRound();
+  document.getElementById('event-log').innerHTML = '';
+  renderAll();
+});
+
+document.getElementById('btn-play-again').addEventListener('click', () => {
+  initGame();
   document.getElementById('event-log').innerHTML = '';
   renderAll();
 });
