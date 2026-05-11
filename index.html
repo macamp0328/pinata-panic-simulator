@@ -15,13 +15,7 @@
       --text: #eaeaea;
       --text-muted: #8888aa;
       --border: #2a2a4a;
-      --green: #4caf50;
       --radius: 8px;
-      --candy-black: #2d2d2d;
-      --candy-green: #4caf50;
-      --candy-yellow: #ffeb3b;
-      --candy-blue: #2196f3;
-      --candy-pink: #e91e8c;
       --shadow: 0 2px 12px rgba(0,0,0,0.4);
     }
 
@@ -35,21 +29,15 @@
       overflow: hidden;
       display: grid;
       grid-template-columns: 240px 1fr 300px;
-      grid-template-rows: 1fr;
     }
 
-    /* ── Scrollable panels ─────────────────────────────────────────── */
-    .panel {
-      overflow-y: auto;
-      padding: 16px;
-      border-right: 1px solid var(--border);
-    }
+    .panel { overflow-y: auto; padding: 16px; border-right: 1px solid var(--border); }
     .panel:last-child { border-right: none; }
 
     h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); margin-bottom: 10px; }
     h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin: 14px 0 6px; }
 
-    /* ── Player panel (left) ───────────────────────────────────────── */
+    /* ── Player panel ──────────────────────────────────────────────── */
     #panel-players { background: var(--surface); }
 
     .player-card {
@@ -61,185 +49,92 @@
       position: relative;
       transition: border-color .2s;
     }
-    .player-card.is-batter {
-      border-color: var(--accent2);
-      box-shadow: 0 0 0 1px var(--accent2);
-    }
+    .player-card.is-batter { border-color: var(--accent2); box-shadow: 0 0 0 1px var(--accent2); }
     .player-card.is-batter::before {
       content: 'BATTER';
-      position: absolute;
-      top: 6px; right: 8px;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: .1em;
-      color: var(--accent2);
+      position: absolute; top: 6px; right: 8px;
+      font-size: 9px; font-weight: 700; letter-spacing: .1em; color: var(--accent2);
     }
     .player-name {
-      font-size: 14px;
-      font-weight: 600;
-      background: none;
-      border: none;
-      color: var(--text);
-      width: 140px;
-      padding: 0;
-      cursor: text;
+      font-size: 14px; font-weight: 600;
+      background: none; border: none; color: var(--text); width: 140px; padding: 0; cursor: text;
     }
     .player-name:focus { outline: 1px solid var(--accent); border-radius: 2px; }
-    .player-scores {
-      display: flex;
-      gap: 14px;
-      margin-top: 6px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    .player-scores { display: flex; gap: 14px; margin-top: 6px; font-size: 12px; color: var(--text-muted); }
     .player-scores span strong { color: var(--text); font-size: 16px; }
-    .player-colors {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-    .color-dot {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .color-dot::before {
-      content: '';
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-    }
-    .color-dot.black::before  { background: var(--candy-black); border: 1px solid #555; }
-    .color-dot.green::before  { background: var(--candy-green); }
-    .color-dot.yellow::before { background: var(--candy-yellow); }
-    .color-dot.blue::before   { background: var(--candy-blue); }
-    .color-dot.pink::before   { background: var(--candy-pink); }
+    .player-colors { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .color-dot { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-muted); }
+    .color-dot .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── Center panel ──────────────────────────────────────────────── */
     #panel-center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 24px;
-      overflow-y: auto;
-      background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 16px 24px; overflow-y: auto; background: var(--bg);
     }
 
-    .round-turn-display {
-      font-size: 13px;
-      color: var(--text-muted);
-      text-align: center;
-    }
+    .round-turn-display { font-size: 13px; color: var(--text-muted); text-align: center; }
     .round-turn-display strong { color: var(--text); font-size: 15px; }
 
-    /* ── Piñata SVG container ──────────────────────────────────────── */
-    #pinata-wrap {
-      position: relative;
-      width: 200px;
-      height: 220px;
-    }
-    #pinata-svg {
-      width: 200px;
-      height: 220px;
-    }
-    /* shake animation */
+    /* ── Piñata SVG ────────────────────────────────────────────────── */
+    #pinata-wrap { position: relative; width: 200px; height: 220px; }
+    #pinata-svg  { width: 200px; height: 220px; }
+
     @keyframes shake {
       0%,100% { transform: rotate(0deg); }
-      15%      { transform: rotate(-6deg); }
-      30%      { transform: rotate(6deg); }
-      45%      { transform: rotate(-4deg); }
-      60%      { transform: rotate(4deg); }
-      75%      { transform: rotate(-2deg); }
-      90%      { transform: rotate(2deg); }
+      15%  { transform: rotate(-7deg); }
+      30%  { transform: rotate(7deg); }
+      45%  { transform: rotate(-4deg); }
+      60%  { transform: rotate(4deg); }
+      75%  { transform: rotate(-2deg); }
+      90%  { transform: rotate(2deg); }
     }
-    #pinata-svg.state-suspense { animation: shake .5s ease-in-out infinite; transform-origin: top center; }
-    #pinata-svg.state-break    { filter: drop-shadow(0 0 12px var(--accent)); }
-
-    /* candy burst particles */
+    #pinata-svg.state-suspense { animation: shake .45s ease-in-out infinite; transform-origin: 88px 0; }
+    #pinata-svg.state-break    { filter: drop-shadow(0 0 14px #ff3b3b); }
     #candy-burst { position: absolute; top: 0; left: 0; pointer-events: none; }
 
-    /* ── Candy pool bar ────────────────────────────────────────────── */
-    .candy-bar-wrap {
-      width: 100%;
-      max-width: 320px;
-      text-align: center;
+    /* ── Last drop display ─────────────────────────────────────────── */
+    #last-drop {
+      display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;
+      min-height: 22px; max-width: 320px;
     }
-    .candy-bar-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-    .candy-bar-track {
-      width: 100%;
-      height: 12px;
-      background: var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .candy-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      border-radius: 6px;
-      transition: width .4s ease;
+    .drop-candy {
+      width: 20px; height: 20px; border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,.5);
     }
 
+    /* ── Candy bar ─────────────────────────────────────────────────── */
+    .candy-bar-wrap { width: 100%; max-width: 320px; text-align: center; }
+    .candy-bar-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .candy-bar-track { width: 100%; height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; }
+    .candy-bar-fill  { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 6px; transition: width .4s ease; }
+
     /* ── Turn tracker ──────────────────────────────────────────────── */
-    .turn-tracker {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      justify-content: center;
-      max-width: 340px;
-    }
+    .turn-tracker { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: 340px; }
     .turn-dot {
-      width: 18px; height: 18px;
-      border-radius: 4px;
-      background: var(--border);
-      font-size: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: transparent;
+      width: 18px; height: 18px; border-radius: 4px; background: var(--border);
       transition: background .3s;
     }
-    .turn-dot.current  { background: var(--surface2); box-shadow: 0 0 0 2px var(--accent2); }
-    .turn-dot.miss     { background: #444; }
-    .turn-dot.drop     { background: var(--accent2); }
-    .turn-dot.break    { background: var(--accent); }
+    .turn-dot.current { background: var(--surface2); box-shadow: 0 0 0 2px var(--accent2); }
+    .turn-dot.miss    { background: #444; }
+    .turn-dot.drop    { background: var(--accent2); }
+    .turn-dot.break   { background: var(--accent); }
 
     /* ── ACTIVATE button ───────────────────────────────────────────── */
     #btn-activate {
-      padding: 16px 48px;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: .06em;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      transition: background .15s, transform .1s, opacity .2s;
+      padding: 16px 48px; font-size: 20px; font-weight: 700; letter-spacing: .06em;
+      background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
+      cursor: pointer; box-shadow: var(--shadow); transition: background .15s, transform .1s, opacity .2s;
     }
     #btn-activate:hover:not(:disabled) { background: #c73350; transform: translateY(-1px); }
     #btn-activate:active:not(:disabled) { transform: translateY(1px); }
     #btn-activate:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
     /* ── Event log ─────────────────────────────────────────────────── */
-    #event-log-wrap {
-      width: 100%;
-      max-width: 440px;
-    }
+    #event-log-wrap { width: 100%; max-width: 440px; }
     #event-log {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 12px;
-      height: 160px;
-      overflow-y: auto;
-      font-size: 11px;
-      font-family: 'Menlo', 'Consolas', monospace;
-      line-height: 1.6;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 10px 12px; height: 150px; overflow-y: auto;
+      font-size: 11px; font-family: 'Menlo','Consolas',monospace; line-height: 1.6;
     }
     .log-entry { color: var(--text-muted); }
     .log-entry .tag  { color: var(--text); font-weight: 600; }
@@ -248,195 +143,10 @@
     .log-entry .brk  { color: var(--accent); font-weight: 700; }
     .log-entry .dist { color: #8888cc; padding-left: 10px; }
 
-    /* ── Control panel (right) ─────────────────────────────────────── */
-    #panel-controls { background: var(--surface); font-size: 12px; }
-
-    .ctrl-group { margin-bottom: 14px; }
-    .ctrl-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      gap: 8px;
-    }
-    .ctrl-label { color: var(--text-muted); flex: 1; }
-    .ctrl-input {
-      width: 72px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      padding: 4px 6px;
-      font-size: 12px;
-      text-align: right;
-    }
-    .ctrl-input:focus { outline: 1px solid var(--accent); }
-    select.ctrl-input { text-align: left; cursor: pointer; }
-
-    /* phase editor */
-    .phase-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr 24px;
-      gap: 4px;
-      margin-bottom: 4px;
-      align-items: center;
-    }
-    .phase-row input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      padding: 3px 5px;
-      font-size: 11px;
-      text-align: center;
-    }
-    .phase-row input:focus { outline: 1px solid var(--accent); }
-    .phase-header {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr 24px;
-      gap: 4px;
-      margin-bottom: 3px;
-      font-size: 10px;
-      color: var(--text-muted);
-      text-align: center;
-    }
-    .btn-remove-phase {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 13px;
-      line-height: 1;
-      width: 22px; height: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .btn-remove-phase:hover { background: var(--accent); color: #fff; }
-    #btn-add-phase {
-      font-size: 11px;
-      padding: 4px 10px;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text-muted);
-      cursor: pointer;
-      margin-top: 4px;
-    }
-    #btn-add-phase:hover { border-color: var(--accent2); color: var(--accent2); }
-    .phase-warning { font-size: 10px; color: var(--accent); margin-top: 4px; display: none; }
-
-    /* control panel buttons */
-    .ctrl-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 10px;
-    }
-    .ctrl-btn {
-      width: 100%;
-      padding: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: background .15s;
-    }
-    .ctrl-btn.secondary { background: var(--surface2); color: var(--text); }
-    .ctrl-btn.secondary:hover { background: #1a4070; }
-    .ctrl-btn.danger    { background: none; color: var(--accent); }
-    .ctrl-btn.danger:hover { background: var(--accent); color: #fff; }
-    .ctrl-btn.neutral   { background: none; color: var(--text-muted); }
-    .ctrl-btn.neutral:hover { background: var(--border); }
-
-    /* ── Round summary overlay ─────────────────────────────────────── */
-    #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.75);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    #overlay.visible { display: flex; }
-    .overlay-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px 32px;
-      min-width: 340px;
-      max-width: 480px;
-      box-shadow: 0 8px 40px rgba(0,0,0,.6);
-    }
-    .overlay-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      text-align: center;
-    }
-    .overlay-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .summary-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 14px;
-      font-size: 13px;
-    }
-    .summary-table th {
-      text-align: left;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--text-muted);
-      padding: 4px 6px;
-      border-bottom: 1px solid var(--border);
-    }
-    .summary-table td {
-      padding: 6px 6px;
-      border-bottom: 1px solid var(--border);
-    }
-    .summary-table tr.rank-1 td { color: var(--accent2); font-weight: 700; }
-    .winner-banner {
-      text-align: center;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent2);
-      padding: 12px;
-      background: rgba(245,166,35,.1);
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-    }
-    #btn-next-round {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 700;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background .15s;
-    }
-    #btn-next-round:hover { background: #c73350; }
-
-    /* break banner */
+    /* ── Break banner ──────────────────────────────────────────────── */
     #break-banner {
-      display: none;
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--accent);
-      text-align: center;
-      letter-spacing: .08em;
+      display: none; font-size: 26px; font-weight: 900; color: var(--accent);
+      text-align: center; letter-spacing: .08em;
       animation: pulseBanner .6s ease-in-out infinite alternate;
     }
     @keyframes pulseBanner {
@@ -445,7 +155,85 @@
     }
     #break-banner.visible { display: block; }
 
-    /* scrollbars */
+    /* ── Control panel ─────────────────────────────────────────────── */
+    #panel-controls { background: var(--surface); font-size: 12px; }
+
+    .ctrl-group { margin-bottom: 14px; }
+    .ctrl-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px; }
+    .ctrl-label { color: var(--text-muted); flex: 1; }
+    .ctrl-input {
+      width: 72px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); padding: 4px 6px; font-size: 12px; text-align: right;
+    }
+    .ctrl-input:focus { outline: 1px solid var(--accent); }
+    select.ctrl-input { text-align: left; cursor: pointer; }
+
+    .phase-header {
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 24px;
+      gap: 4px; margin-bottom: 3px; font-size: 10px; color: var(--text-muted); text-align: center;
+    }
+    .phase-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 24px; gap: 4px; margin-bottom: 4px; align-items: center; }
+    .phase-row input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text); padding: 3px 5px; font-size: 11px; text-align: center;
+    }
+    .phase-row input:focus { outline: 1px solid var(--accent); }
+    .btn-remove-phase {
+      background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--accent);
+      cursor: pointer; font-size: 13px; width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-remove-phase:hover { background: var(--accent); color: #fff; }
+    #btn-add-phase {
+      font-size: 11px; padding: 4px 10px; background: none; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted); cursor: pointer; margin-top: 4px;
+    }
+    #btn-add-phase:hover { border-color: var(--accent2); color: var(--accent2); }
+    .phase-warning { font-size: 10px; color: var(--accent); margin-top: 4px; display: none; }
+
+    /* pending banner */
+    #pending-banner {
+      display: none; background: rgba(245,166,35,.1); border: 1px solid var(--accent2);
+      border-radius: 4px; padding: 7px 10px; font-size: 11px; color: var(--accent2);
+      text-align: center; margin-bottom: 8px;
+    }
+    #pending-banner.visible { display: block; }
+
+    .ctrl-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .ctrl-btn { width: 100%; padding: 8px; font-size: 12px; font-weight: 600; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+    .ctrl-btn.secondary { background: var(--surface2); color: var(--text); }
+    .ctrl-btn.secondary:hover { background: #1a4070; }
+    .ctrl-btn.danger { background: none; color: var(--accent); }
+    .ctrl-btn.danger:hover { background: var(--accent); color: #fff; }
+    .ctrl-btn.neutral { background: none; color: var(--text-muted); }
+    .ctrl-btn.neutral:hover { background: var(--border); }
+
+    /* ── Round summary overlay ─────────────────────────────────────── */
+    #overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      z-index: 100; align-items: center; justify-content: center;
+    }
+    #overlay.visible { display: flex; }
+    .overlay-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px 32px; min-width: 340px; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    }
+    .overlay-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; text-align: center; }
+    .overlay-subtitle { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
+    .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+    .summary-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); padding: 4px 6px; border-bottom: 1px solid var(--border); }
+    .summary-table td { padding: 6px 6px; border-bottom: 1px solid var(--border); }
+    .summary-table tr.rank-1 td { color: var(--accent2); font-weight: 700; }
+    .winner-banner {
+      text-align: center; font-size: 18px; font-weight: 700; color: var(--accent2);
+      padding: 12px; background: rgba(245,166,35,.1); border-radius: var(--radius); margin-bottom: 16px;
+    }
+    #btn-next-round {
+      display: block; width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
+      background: var(--accent); color: #fff; border: none; border-radius: var(--radius); cursor: pointer;
+    }
+    #btn-next-round:hover { background: #c73350; }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -453,56 +241,113 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     LEFT: Player panel
-════════════════════════════════════════════════════ -->
+<!-- LEFT: Players -->
 <div class="panel" id="panel-players">
   <h2>Players</h2>
-  <div id="player-list"><!-- rendered --></div>
+  <div id="player-list"></div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     CENTER: Piñata + controls + log
-════════════════════════════════════════════════════ -->
+<!-- CENTER: Piñata + controls + log -->
 <div id="panel-center">
 
   <div class="round-turn-display" id="round-turn-display">Round — / — &nbsp;·&nbsp; Turn — of —</div>
 
   <div id="pinata-wrap">
     <svg id="pinata-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+
       <!-- string -->
-      <line x1="100" y1="0" x2="100" y2="28" stroke="#a0825a" stroke-width="3" stroke-linecap="round"/>
+      <line x1="88" y1="0" x2="88" y2="79" stroke="#b8906a" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- tail (wavy rainbow, left side) -->
+      <path d="M36,106 Q8,94 12,70 Q16,48 2,38" stroke="#c050ff" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M36,118 Q6,112 8,88 Q10,68 18,60" stroke="#ff8c00" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M36,130 Q12,130 10,108" stroke="#00d26a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M36,140 Q14,146 16,128" stroke="#1a9fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+      <!-- body shadow -->
+      <ellipse cx="97" cy="125" rx="60" ry="43" fill="#9e2060" opacity=".35"/>
+
       <!-- body -->
-      <ellipse id="pinata-body" cx="100" cy="120" rx="68" ry="72" fill="#e94560"/>
-      <!-- highlight -->
-      <ellipse cx="78" cy="88" rx="22" ry="14" fill="rgba(255,255,255,.18)" transform="rotate(-20,78,88)"/>
-      <!-- fringe rows -->
-      <g id="pinata-fringe" fill="none">
-        <ellipse cx="100" cy="120" rx="68" ry="72" fill="none" stroke="#ffeb3b" stroke-width="9" stroke-dasharray="6 4" opacity=".8"/>
-        <ellipse cx="100" cy="120" rx="55" ry="60" fill="none" stroke="#4caf50" stroke-width="7" stroke-dasharray="5 4" opacity=".7"/>
-        <ellipse cx="100" cy="120" rx="42" ry="48" fill="none" stroke="#2196f3" stroke-width="6" stroke-dasharray="5 4" opacity=".6"/>
-      </g>
-      <!-- hatch (closed by default) -->
+      <ellipse id="pinata-body" cx="95" cy="122" rx="60" ry="43" fill="#e8629a"/>
+
+      <!-- fringe decoration bands -->
+      <ellipse cx="95" cy="122" rx="60" ry="43" fill="none" stroke="#ffd700" stroke-width="9"  stroke-dasharray="7 4" opacity=".9"/>
+      <ellipse cx="95" cy="122" rx="47" ry="33" fill="none" stroke="#1a9fff" stroke-width="7"  stroke-dasharray="6 4" opacity=".8"/>
+      <ellipse cx="95" cy="122" rx="34" ry="23" fill="none" stroke="#c050ff" stroke-width="5"  stroke-dasharray="5 3" opacity=".7"/>
+
+      <!-- body highlight -->
+      <ellipse cx="74" cy="96" rx="20" ry="13" fill="rgba(255,255,255,.15)" transform="rotate(-15,74,96)"/>
+
+      <!-- neck -->
+      <path d="M140,90 Q152,82 160,78 Q168,74 162,100 Q154,110 140,108 Z" fill="#d85090"/>
+
+      <!-- head -->
+      <circle cx="160" cy="76" r="26" fill="#f07ab0"/>
+
+      <!-- ear -->
+      <polygon points="148,54 157,36 167,56" fill="#d85090"/>
+      <polygon points="151,54 157,45 163,56" fill="#ffbbdd"/>
+
+      <!-- horn (gold) -->
+      <polygon points="158,52 170,52 164,26" fill="#ffd700"/>
+      <line x1="164" y1="28" x2="164" y2="50" stroke="#c8900a" stroke-width="1.5" opacity=".5"/>
+      <line x1="161" y1="38" x2="166" y2="44" stroke="#c8900a" stroke-width="1.5" opacity=".4"/>
+
+      <!-- mane (rainbow strands from ear/neck flowing back) -->
+      <path d="M155,54 Q136,67 133,85 Q130,101 134,118" stroke="#c050ff" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M150,53 Q130,65 127,83 Q124,99 128,115" stroke="#ff8c00" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M145,53 Q125,64 122,81 Q119,96 122,110" stroke="#00d26a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M140,54 Q121,64 118,80 Q115,94 118,106" stroke="#ffd700" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+      <!-- head highlight -->
+      <ellipse cx="151" cy="66" rx="8" ry="6" fill="rgba(255,255,255,.22)" transform="rotate(-20,151,66)"/>
+
+      <!-- eye -->
+      <circle cx="167" cy="72" r="5.5" fill="#1a1a2e"/>
+      <circle cx="168.5" cy="70.5" r="2.5" fill="rgba(255,255,255,.9)"/>
+
+      <!-- nostril -->
+      <ellipse cx="180" cy="84" rx="3" ry="2.5" fill="#b03060" opacity=".7"/>
+
+      <!-- back legs -->
+      <rect x="50" y="161" width="13" height="46" rx="5" fill="#c83878"/>
+      <rect x="67" y="161" width="13" height="46" rx="5" fill="#c83878"/>
+      <!-- front legs -->
+      <rect x="116" y="161" width="13" height="46" rx="5" fill="#c83878"/>
+      <rect x="133" y="161" width="13" height="46" rx="5" fill="#c83878"/>
+
+      <!-- hooves -->
+      <rect x="49"  y="199" width="15" height="9" rx="4" fill="#8c2458"/>
+      <rect x="66"  y="199" width="15" height="9" rx="4" fill="#8c2458"/>
+      <rect x="115" y="199" width="15" height="9" rx="4" fill="#8c2458"/>
+      <rect x="132" y="199" width="15" height="9" rx="4" fill="#8c2458"/>
+
+      <!-- hatch (closed) -->
       <g id="pinata-hatch">
-        <ellipse cx="100" cy="158" rx="28" ry="14" fill="#c73350"/>
-        <ellipse cx="100" cy="155" rx="22" ry="10" fill="#a02040"/>
+        <ellipse cx="95" cy="162" rx="24" ry="11" fill="#a02860"/>
+        <ellipse cx="95" cy="159" rx="18" ry="8"  fill="#7a1840"/>
       </g>
-      <!-- hatch open (drip) — hidden by default -->
+
+      <!-- hatch open (drip) -->
       <g id="pinata-hatch-open" display="none">
-        <path d="M72 152 Q100 178 128 152" stroke="#a02040" stroke-width="4" fill="none"/>
-        <circle cx="100" cy="178" r="5" fill="var(--candy-yellow)" opacity="0.9"/>
-        <circle cx="88"  cy="185" r="4" fill="var(--candy-pink)"   opacity="0.9"/>
-        <circle cx="112" cy="183" r="4" fill="var(--candy-green)"  opacity="0.9"/>
+        <path d="M71,155 Q95,177 119,155" stroke="#7a1840" stroke-width="4" fill="none"/>
+        <circle cx="95"  cy="174" r="5"   fill="#ffd700" opacity=".9"/>
+        <circle cx="83"  cy="181" r="4"   fill="#c050ff" opacity=".9"/>
+        <circle cx="107" cy="179" r="4"   fill="#00d26a" opacity=".9"/>
+        <circle cx="95"  cy="186" r="3.5" fill="#ff8c00" opacity=".9"/>
       </g>
-      <!-- depleted overlay (hidden) -->
+
+      <!-- depleted overlay -->
       <g id="pinata-empty" display="none">
-        <ellipse cx="100" cy="120" rx="68" ry="72" fill="rgba(0,0,0,.45)"/>
-        <text x="100" y="125" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="13" font-weight="700">EMPTY</text>
+        <ellipse cx="95" cy="122" rx="60" ry="43" fill="rgba(0,0,0,.5)"/>
+        <text x="95" y="127" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="12" font-weight="700">EMPTY</text>
       </g>
+
     </svg>
-    <!-- candy burst canvas -->
     <canvas id="candy-burst" width="200" height="220"></canvas>
   </div>
+
+  <div id="last-drop"></div>
 
   <div id="break-banner">⚡ PIÑATA BROKEN ⚡</div>
 
@@ -511,7 +356,7 @@
     <div class="candy-bar-track"><div class="candy-bar-fill" id="candy-bar-fill" style="width:100%"></div></div>
   </div>
 
-  <div class="turn-tracker" id="turn-tracker"><!-- rendered --></div>
+  <div class="turn-tracker" id="turn-tracker"></div>
 
   <button id="btn-activate">ACTIVATE</button>
 
@@ -522,9 +367,7 @@
 
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     RIGHT: Control panel
-════════════════════════════════════════════════════ -->
+<!-- RIGHT: Control panel -->
 <div class="panel" id="panel-controls">
   <h2>Control Panel</h2>
 
@@ -541,6 +384,10 @@
     <div class="ctrl-row">
       <span class="ctrl-label">Candy per round</span>
       <input class="ctrl-input" type="number" id="cfg-candyPerRound" min="10" max="200" step="5">
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Candy colors</span>
+      <input class="ctrl-input" type="number" id="cfg-numCandyColors" min="1" max="5" step="1">
     </div>
     <div class="ctrl-row">
       <span class="ctrl-label">End of round</span>
@@ -572,7 +419,7 @@
     <div class="phase-header">
       <span>Start</span><span>End</span><span>Min</span><span>Max</span><span></span>
     </div>
-    <div id="phase-list"><!-- rendered --></div>
+    <div id="phase-list"></div>
     <div class="phase-warning" id="phase-warning">⚠ Gap in turn coverage</div>
     <button id="btn-add-phase">+ Add phase</button>
   </div>
@@ -584,7 +431,7 @@
       <input class="ctrl-input" type="number" id="cfg-finalBreakStartTurn" min="1" max="30" step="1">
     </div>
     <div class="ctrl-row">
-      <span class="ctrl-label">Start % </span>
+      <span class="ctrl-label">Start %</span>
       <input class="ctrl-input" type="number" id="cfg-finalBreakStartPct" min="0" max="100" step="1">
     </div>
     <div class="ctrl-row">
@@ -605,6 +452,8 @@
     </div>
   </div>
 
+  <div id="pending-banner">⚠ Changes pending — Restart Game to apply</div>
+
   <div class="ctrl-btns">
     <button class="ctrl-btn secondary" id="btn-restart-round">Restart Round</button>
     <button class="ctrl-btn danger"    id="btn-restart-game">Restart Game</button>
@@ -612,21 +461,15 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     OVERLAY: Round summary
-════════════════════════════════════════════════════ -->
+<!-- OVERLAY: Round summary -->
 <div id="overlay">
   <div class="overlay-card">
     <div class="overlay-title" id="overlay-title">Round Complete</div>
     <div class="overlay-subtitle" id="overlay-subtitle"></div>
     <div id="winner-banner-wrap"></div>
-    <table class="summary-table" id="summary-table">
-      <thead>
-        <tr>
-          <th>#</th><th>Player</th><th>This Round</th><th>Total</th>
-        </tr>
-      </thead>
-      <tbody id="summary-tbody"><!-- rendered --></tbody>
+    <table class="summary-table">
+      <thead><tr><th>#</th><th>Player</th><th>This Round</th><th>Total</th></tr></thead>
+      <tbody id="summary-tbody"></tbody>
     </table>
     <button id="btn-next-round">Start Round 2</button>
   </div>
@@ -636,12 +479,24 @@
 /* ═══════════════════════════════════════════════════════════════
    1. CONFIG
    ═══════════════════════════════════════════════════════════════ */
+
+const MASTER_COLORS = ['red', 'orange', 'green', 'blue', 'purple'];
+
+const COLOR_HEX = {
+  red:    '#ff3b3b',
+  orange: '#ff8c00',
+  green:  '#00d26a',
+  blue:   '#1a9fff',
+  purple: '#c050ff',
+};
+
 const DEFAULTS = {
   numPlayers: 4,
   totalRounds: 3,
   candyPerRound: 50,
+  numCandyColors: 5,
   endOfRoundBehavior: 'release',
-  minTurns: 10,
+  minTurns: 16,
   maxTurns: 16,
   dropChance: 0.5,
   phases: [
@@ -654,10 +509,20 @@ const DEFAULTS = {
   finalBreakEndPct: 0.40,
   dropDelayMin: 0,
   dropDelayMax: 3,
-  candyColors: ['black', 'green', 'yellow', 'blue', 'pink'],
 };
 
-const config = structuredClone(DEFAULTS);
+// config = active values used by the running game
+// pendingConfig = what the control panel shows; applied on Restart Game
+const config        = structuredClone(DEFAULTS);
+const pendingConfig = structuredClone(DEFAULTS);
+
+function getActiveColors(cfg) {
+  return MASTER_COLORS.slice(0, cfg.numCandyColors ?? 5);
+}
+
+function hasPendingChanges() {
+  return JSON.stringify(config) !== JSON.stringify(pendingConfig);
+}
 
 /* ═══════════════════════════════════════════════════════════════
    2. STATE
@@ -671,13 +536,13 @@ const state = {
   players: [],
   roundOver: false,
   gameOver: false,
-  uiPhase: 'idle',        // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
-  turnHistory: [],        // array of { type: 'miss'|'drop'|'break' } per turn slot
-  lastTurnResult: null,   // holds result object for current turn display
+  uiPhase: 'idle',      // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
+  turnHistory: [],
+  lastTurnResult: null,
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   3. GAME LOGIC  (no DOM access)
+   3. GAME LOGIC
    ═══════════════════════════════════════════════════════════════ */
 
 function randInt(min, max) {
@@ -686,11 +551,10 @@ function randInt(min, max) {
 
 function buildCandyPool() {
   const pool = {};
-  const base = Math.floor(config.candyPerRound / config.candyColors.length);
-  let remainder = config.candyPerRound % config.candyColors.length;
-  for (const color of config.candyColors) {
-    pool[color] = base + (remainder-- > 0 ? 1 : 0);
-  }
+  const colors = getActiveColors(config);
+  const base = Math.floor(config.candyPerRound / colors.length);
+  let rem = config.candyPerRound % colors.length;
+  for (const c of colors) pool[c] = base + (rem-- > 0 ? 1 : 0);
   return pool;
 }
 
@@ -699,19 +563,19 @@ function totalCandyInPool(pool) {
 }
 
 function buildPlayers(count, existing) {
-  const players = [];
-  for (let i = 0; i < count; i++) {
-    const name = existing?.[i]?.name ?? `Player ${i + 1}`;
-    players.push({ name, roundCandy: 0, totalCandy: 0, colorCounts: {} });
-  }
-  return players;
+  return Array.from({ length: count }, (_, i) => ({
+    name: existing?.[i]?.name ?? `Player ${i + 1}`,
+    roundCandy: 0,
+    totalCandy: existing?.[i]?.totalCandy ?? 0,
+    colorCounts: {},
+  }));
 }
 
 function initGame() {
-  state.currentRound = 1;
-  state.batterIndex = 0;
-  state.roundOver = false;
-  state.gameOver = false;
+  state.currentRound  = 1;
+  state.batterIndex   = 0;
+  state.roundOver     = false;
+  state.gameOver      = false;
   state.lastTurnResult = null;
   state.players = buildPlayers(config.numPlayers, state.players);
   initRound(true);
@@ -720,26 +584,20 @@ function initGame() {
 function initRound(freshGame = false) {
   state.currentTurn = 1;
   state.totalTurnsThisRound = randInt(config.minTurns, config.maxTurns);
-  state.candyPool = buildCandyPool();
-  state.roundOver = false;
-  state.uiPhase = 'idle';
+  state.candyPool   = buildCandyPool();
+  state.roundOver   = false;
+  state.uiPhase     = 'idle';
   state.lastTurnResult = null;
   state.turnHistory = [];
   if (!freshGame) {
-    // reset round candy but keep totals
-    for (const p of state.players) {
-      p.roundCandy = 0;
-      p.colorCounts = {};
-    }
+    for (const p of state.players) { p.roundCandy = 0; p.colorCounts = {}; }
   }
 }
 
 function getPhaseForTurn(turn) {
   let matched = null;
-  for (const phase of config.phases) {
-    if (turn >= phase.startTurn && turn <= phase.endTurn) {
-      matched = phase;
-    }
+  for (const ph of config.phases) {
+    if (turn >= ph.startTurn && turn <= ph.endTurn) matched = ph;
   }
   return matched ?? config.phases.at(-1);
 }
@@ -747,7 +605,7 @@ function getPhaseForTurn(turn) {
 function checkFinalBreak(turn) {
   if (turn < config.finalBreakStartTurn) return false;
   const { finalBreakStartTurn, maxTurns, finalBreakStartPct, finalBreakEndPct } = config;
-  const denom = maxTurns - finalBreakStartTurn;
+  const denom  = maxTurns - finalBreakStartTurn;
   const chance = denom <= 0
     ? finalBreakEndPct
     : finalBreakStartPct + (turn - finalBreakStartTurn) / denom * (finalBreakEndPct - finalBreakStartPct);
@@ -756,18 +614,13 @@ function checkFinalBreak(turn) {
 
 function drawCandy(n, pool) {
   const drawn = [];
-  const colors = config.candyColors;
+  const colors = getActiveColors(config);
   let remaining = totalCandyInPool(pool);
   for (let i = 0; i < n && remaining > 0; i++) {
     let r = randInt(0, remaining - 1);
-    for (const color of colors) {
-      if (r < pool[color]) {
-        drawn.push(color);
-        pool[color]--;
-        remaining--;
-        break;
-      }
-      r -= pool[color];
+    for (const c of colors) {
+      if (r < pool[c]) { drawn.push(c); pool[c]--; remaining--; break; }
+      r -= pool[c];
     }
   }
   return drawn;
@@ -775,16 +628,13 @@ function drawCandy(n, pool) {
 
 function distributeCandy(pieces, batterIndex) {
   const dist = {};
-  const eligible = state.players
-    .map((_, i) => i)
-    .filter(i => i !== batterIndex);
+  const eligible = state.players.map((_, i) => i).filter(i => i !== batterIndex);
   for (const color of pieces) {
-    const recipient = eligible[randInt(0, eligible.length - 1)];
-    dist[recipient] = (dist[recipient] ?? 0) + 1;
-    state.players[recipient].roundCandy++;
-    state.players[recipient].totalCandy++;
-    state.players[recipient].colorCounts[color] =
-      (state.players[recipient].colorCounts[color] ?? 0) + 1;
+    const r = eligible[randInt(0, eligible.length - 1)];
+    dist[r] = (dist[r] ?? 0) + 1;
+    state.players[r].roundCandy++;
+    state.players[r].totalCandy++;
+    state.players[r].colorCounts[color] = (state.players[r].colorCounts[color] ?? 0) + 1;
   }
   return dist;
 }
@@ -793,31 +643,18 @@ function advanceBatter() {
   state.batterIndex = (state.batterIndex + 1) % state.players.length;
 }
 
-function computeBreakChancePct(turn) {
-  if (turn < config.finalBreakStartTurn) return null;
-  const { finalBreakStartTurn, maxTurns, finalBreakStartPct, finalBreakEndPct } = config;
-  const denom = maxTurns - finalBreakStartTurn;
-  const chance = denom <= 0
-    ? finalBreakEndPct
-    : finalBreakStartPct + (turn - finalBreakStartTurn) / denom * (finalBreakEndPct - finalBreakStartPct);
-  return Math.round(chance * 100);
-}
-
 function resolveEndOfRound() {
-  // Called when turns are exhausted (no final break)
   const remaining = totalCandyInPool(state.candyPool);
-  let result = { type: 'end', remaining };
+  const result = { type: 'end', remaining };
   if (config.endOfRoundBehavior === 'release' && remaining > 0) {
-    const pieces = drawCandy(remaining, state.candyPool);
-    const dist = distributeCandy(pieces, state.batterIndex);
-    result.pieces = pieces;
-    result.dist = dist;
+    result.pieces = drawCandy(remaining, state.candyPool);
+    result.dist   = distributeCandy(result.pieces, state.batterIndex);
   }
   return result;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   4. RENDER  (all DOM writes live here)
+   4. RENDER
    ═══════════════════════════════════════════════════════════════ */
 
 function renderAll() {
@@ -837,7 +674,6 @@ function renderPlayers() {
     const nameInput = document.createElement('input');
     nameInput.className = 'player-name';
     nameInput.value = p.name;
-    nameInput.dataset.index = i;
     nameInput.addEventListener('change', e => {
       state.players[i].name = e.target.value.trim() || `Player ${i + 1}`;
       renderAll();
@@ -846,20 +682,21 @@ function renderPlayers() {
 
     const scores = document.createElement('div');
     scores.className = 'player-scores';
-    scores.innerHTML =
-      `<span>Round: <strong>${p.roundCandy}</strong></span>` +
-      `<span>Total: <strong>${p.totalCandy}</strong></span>`;
+    scores.innerHTML = `<span>Round: <strong>${p.roundCandy}</strong></span><span>Total: <strong>${p.totalCandy}</strong></span>`;
     card.appendChild(scores);
 
-    // color breakdown
     const colors = document.createElement('div');
     colors.className = 'player-colors';
-    for (const color of config.candyColors) {
+    for (const color of getActiveColors(config)) {
       const count = p.colorCounts[color] ?? 0;
       if (count > 0) {
         const dot = document.createElement('span');
-        dot.className = `color-dot ${color}`;
-        dot.textContent = count;
+        dot.className = 'color-dot';
+        const swatch = document.createElement('span');
+        swatch.className = 'swatch';
+        swatch.style.background = COLOR_HEX[color] ?? '#888';
+        dot.appendChild(swatch);
+        dot.appendChild(document.createTextNode(count));
         colors.appendChild(dot);
       }
     }
@@ -870,18 +707,27 @@ function renderPlayers() {
 
 function renderCenterPanel() {
   // Round/turn display
-  const rtd = document.getElementById('round-turn-display');
-  rtd.innerHTML = state.gameOver
+  document.getElementById('round-turn-display').innerHTML = state.gameOver
     ? '<strong>Game Over</strong>'
     : `Round <strong>${state.currentRound}</strong> of <strong>${config.totalRounds}</strong>` +
       ` &nbsp;·&nbsp; Turn <strong>${state.currentTurn}</strong> of <strong>${state.totalTurnsThisRound ?? '?'}</strong>`;
 
   // Candy bar
-  const total = config.candyPerRound;
   const remaining = totalCandyInPool(state.candyPool);
-  const pct = total > 0 ? (remaining / total) * 100 : 0;
-  document.getElementById('candy-bar-label').textContent = `Candy: ${remaining} / ${total}`;
+  const pct = config.candyPerRound > 0 ? (remaining / config.candyPerRound) * 100 : 0;
+  document.getElementById('candy-bar-label').textContent = `Candy: ${remaining} / ${config.candyPerRound}`;
   document.getElementById('candy-bar-fill').style.width = `${pct}%`;
+
+  // Last drop display
+  const lastDrop = document.getElementById('last-drop');
+  const lr = state.lastTurnResult;
+  if (lr && (lr.type === 'drop' || lr.type === 'break') && lr.pieces?.length) {
+    lastDrop.innerHTML = lr.pieces
+      .map(c => `<span class="drop-candy" style="background:${COLOR_HEX[c] ?? '#888'}" title="${c}"></span>`)
+      .join('');
+  } else {
+    lastDrop.innerHTML = '';
+  }
 
   // Piñata visual state
   const svg = document.getElementById('pinata-svg');
@@ -896,7 +742,7 @@ function renderCenterPanel() {
     svg.classList.add('state-break');
     document.getElementById('pinata-hatch').setAttribute('display', 'none');
     document.getElementById('pinata-hatch-open').setAttribute('display', 'block');
-  } else if (state.uiPhase === 'result' && state.lastTurnResult?.type === 'drop') {
+  } else if (state.uiPhase === 'result' && lr?.type === 'drop') {
     document.getElementById('pinata-hatch').setAttribute('display', 'none');
     document.getElementById('pinata-hatch-open').setAttribute('display', 'block');
   }
@@ -905,16 +751,14 @@ function renderCenterPanel() {
   }
 
   // Break banner
-  const banner = document.getElementById('break-banner');
-  banner.classList.toggle('visible', state.uiPhase === 'break');
+  document.getElementById('break-banner').classList.toggle('visible', state.uiPhase === 'break');
 
   // Turn tracker
   renderTurnTracker();
 
   // Activate button
   const btn = document.getElementById('btn-activate');
-  const blocked = state.uiPhase === 'suspense' || state.roundOver || state.gameOver;
-  btn.disabled = blocked;
+  btn.disabled = state.uiPhase === 'suspense' || state.roundOver || state.gameOver;
   btn.textContent = state.uiPhase === 'suspense' ? 'ACTIVATING…' : 'ACTIVATE';
 }
 
@@ -924,99 +768,87 @@ function renderTurnTracker() {
   const total = state.totalTurnsThisRound ?? 0;
   for (let i = 0; i < total; i++) {
     const dot = document.createElement('div');
-    const hist = state.turnHistory[i];
     dot.className = 'turn-dot';
-    if (hist) {
-      dot.classList.add(hist.type);
-    } else if (i + 1 === state.currentTurn && !state.roundOver) {
-      dot.classList.add('current');
-    }
+    const hist = state.turnHistory[i];
+    if (hist) dot.classList.add(hist.type);
+    else if (i + 1 === state.currentTurn && !state.roundOver) dot.classList.add('current');
     dot.title = `Turn ${i + 1}`;
     tracker.appendChild(dot);
   }
 }
 
 function renderControlPanel() {
-  // Simple inputs
+  // All inputs display pendingConfig values
   const map = {
-    'cfg-numPlayers': config.numPlayers,
-    'cfg-totalRounds': config.totalRounds,
-    'cfg-candyPerRound': config.candyPerRound,
-    'cfg-endOfRoundBehavior': config.endOfRoundBehavior,
-    'cfg-minTurns': config.minTurns,
-    'cfg-maxTurns': config.maxTurns,
-    'cfg-dropChance': Math.round(config.dropChance * 100),
-    'cfg-finalBreakStartTurn': config.finalBreakStartTurn,
-    'cfg-finalBreakStartPct': Math.round(config.finalBreakStartPct * 100),
-    'cfg-finalBreakEndPct': Math.round(config.finalBreakEndPct * 100),
-    'cfg-dropDelayMin': config.dropDelayMin,
-    'cfg-dropDelayMax': config.dropDelayMax,
+    'cfg-numPlayers':          pendingConfig.numPlayers,
+    'cfg-totalRounds':         pendingConfig.totalRounds,
+    'cfg-candyPerRound':       pendingConfig.candyPerRound,
+    'cfg-numCandyColors':      pendingConfig.numCandyColors,
+    'cfg-endOfRoundBehavior':  pendingConfig.endOfRoundBehavior,
+    'cfg-minTurns':            pendingConfig.minTurns,
+    'cfg-maxTurns':            pendingConfig.maxTurns,
+    'cfg-dropChance':          Math.round(pendingConfig.dropChance * 100),
+    'cfg-finalBreakStartTurn': pendingConfig.finalBreakStartTurn,
+    'cfg-finalBreakStartPct':  Math.round(pendingConfig.finalBreakStartPct * 100),
+    'cfg-finalBreakEndPct':    Math.round(pendingConfig.finalBreakEndPct * 100),
+    'cfg-dropDelayMin':        pendingConfig.dropDelayMin,
+    'cfg-dropDelayMax':        pendingConfig.dropDelayMax,
   };
   for (const [id, val] of Object.entries(map)) {
     const el = document.getElementById(id);
     if (el && document.activeElement !== el) el.value = val;
   }
 
-  // Phase list
   renderPhaseList();
+
+  document.getElementById('pending-banner').classList.toggle('visible', hasPendingChanges());
 }
 
 function renderPhaseList() {
   const list = document.getElementById('phase-list');
   list.innerHTML = '';
-  config.phases.forEach((phase, idx) => {
+  pendingConfig.phases.forEach((phase, idx) => {
     const row = document.createElement('div');
     row.className = 'phase-row';
     ['startTurn', 'endTurn', 'minCandy', 'maxCandy'].forEach(field => {
       const inp = document.createElement('input');
-      inp.type = 'number';
-      inp.value = phase[field];
-      inp.min = 1;
-      inp.dataset.idx = idx;
-      inp.dataset.field = field;
+      inp.type = 'number'; inp.value = phase[field]; inp.min = 1;
       inp.addEventListener('change', e => {
         const v = parseInt(e.target.value, 10);
-        if (!isNaN(v)) config.phases[idx][field] = v;
+        if (!isNaN(v)) pendingConfig.phases[idx][field] = v;
         checkPhaseWarning();
         renderAll();
       });
       row.appendChild(inp);
     });
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'btn-remove-phase';
-    removeBtn.textContent = '×';
-    removeBtn.title = 'Remove phase';
-    removeBtn.addEventListener('click', () => {
-      if (config.phases.length > 1) {
-        config.phases.splice(idx, 1);
+    const rm = document.createElement('button');
+    rm.className = 'btn-remove-phase';
+    rm.textContent = '×';
+    rm.addEventListener('click', () => {
+      if (pendingConfig.phases.length > 1) {
+        pendingConfig.phases.splice(idx, 1);
         checkPhaseWarning();
         renderAll();
       }
     });
-    row.appendChild(removeBtn);
+    row.appendChild(rm);
     list.appendChild(row);
   });
   checkPhaseWarning();
 }
 
 function checkPhaseWarning() {
-  if (!state.totalTurnsThisRound) return;
-  const max = state.totalTurnsThisRound;
+  const max = state.totalTurnsThisRound ?? pendingConfig.maxTurns;
   let gap = false;
   for (let t = 1; t <= max; t++) {
-    if (!config.phases.some(p => t >= p.startTurn && t <= p.endTurn)) {
-      gap = true; break;
-    }
+    if (!pendingConfig.phases.some(p => t >= p.startTurn && t <= p.endTurn)) { gap = true; break; }
   }
   document.getElementById('phase-warning').style.display = gap ? 'block' : 'none';
 }
 
 function renderOverlay() {
   const overlay = document.getElementById('overlay');
-  if (state.uiPhase !== 'summary') {
-    overlay.classList.remove('visible');
-    return;
-  }
+  if (state.uiPhase !== 'summary') { overlay.classList.remove('visible'); return; }
   overlay.classList.add('visible');
 
   const isGameOver = state.gameOver;
@@ -1027,21 +859,17 @@ function renderOverlay() {
       ? `Final results after ${config.totalRounds} rounds`
       : `After ${state.totalTurnsThisRound} turns`;
 
-  // winner banner only on game over
   const winnerWrap = document.getElementById('winner-banner-wrap');
   if (isGameOver) {
-    const maxCandy = Math.max(...state.players.map(p => p.totalCandy));
-    const winners = state.players.filter(p => p.totalCandy === maxCandy).map(p => p.name);
+    const max = Math.max(...state.players.map(p => p.totalCandy));
+    const winners = state.players.filter(p => p.totalCandy === max).map(p => p.name);
     winnerWrap.innerHTML = `<div class="winner-banner">🏆 ${winners.join(' & ')} wins!</div>`;
   } else {
     winnerWrap.innerHTML = '';
   }
 
-  // summary table — sort by round candy desc, fallback total
-  const sorted = state.players
-    .map((p, i) => ({ ...p, _i: i }))
-    .sort((a, b) => (b.roundCandy - a.roundCandy) || (b.totalCandy - a.totalCandy));
-
+  const sorted = [...state.players].sort((a, b) =>
+    (b.roundCandy - a.roundCandy) || (b.totalCandy - a.totalCandy));
   const tbody = document.getElementById('summary-tbody');
   tbody.innerHTML = '';
   sorted.forEach((p, rank) => {
@@ -1051,18 +879,13 @@ function renderOverlay() {
     tbody.appendChild(tr);
   });
 
-  // next-round button label
   const nextBtn = document.getElementById('btn-next-round');
   if (isGameOver) {
     nextBtn.textContent = 'See Final Results';
-    nextBtn.disabled = true;
-    nextBtn.style.opacity = '.5';
-    nextBtn.style.cursor = 'default';
+    nextBtn.disabled = true; nextBtn.style.opacity = '.5'; nextBtn.style.cursor = 'default';
   } else {
     nextBtn.textContent = `Start Round ${state.currentRound + 1}`;
-    nextBtn.disabled = false;
-    nextBtn.style.opacity = '1';
-    nextBtn.style.cursor = 'pointer';
+    nextBtn.disabled = false; nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer';
   }
 }
 
@@ -1077,54 +900,46 @@ function logTurn(html) {
 }
 
 function colorSpan(color) {
-  return `<span class="color-dot ${color}" style="display:inline-flex;align-items:center;gap:2px">${color}</span>`;
+  const hex = COLOR_HEX[color] ?? '#888';
+  return `<span style="display:inline-flex;align-items:center;gap:2px;font-size:10px;color:var(--text-muted)">` +
+    `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hex};flex-shrink:0"></span>${color}</span>`;
 }
 
 function formatPieces(pieces) {
   const counts = {};
   for (const c of pieces) counts[c] = (counts[c] ?? 0) + 1;
-  return Object.entries(counts)
-    .map(([c, n]) => `${n} ${colorSpan(c)}`)
-    .join(', ');
+  return Object.entries(counts).map(([c, n]) => `${n} ${colorSpan(c)}`).join(', ');
 }
 
 function formatDist(dist) {
   return state.players
     .map((p, i) => dist[i] ? `${p.name} got ${dist[i]}` : null)
-    .filter(Boolean)
-    .join(', ');
+    .filter(Boolean).join(', ');
 }
 
-/* ── Candy burst animation ─────────────────────────────────────── */
+/* ── Candy burst ───────────────────────────────────────────────── */
 function triggerCandyBurst(count) {
   const canvas = document.getElementById('candy-burst');
-  const ctx = canvas.getContext('2d');
-  const colors = ['#2d2d2d', '#4caf50', '#ffeb3b', '#2196f3', '#e91e8c'];
-  const particles = Array.from({ length: Math.min(count * 3, 40) }, () => ({
-    x: 90 + Math.random() * 20,
-    y: 160,
-    vx: (Math.random() - .5) * 5,
-    vy: -(Math.random() * 4 + 2),
-    color: colors[Math.floor(Math.random() * colors.length)],
+  const ctx    = canvas.getContext('2d');
+  const hexArr = Object.values(COLOR_HEX);
+  const particles = Array.from({ length: Math.min(count * 3, 50) }, () => ({
+    x: 85 + Math.random() * 20, y: 165,
+    vx: (Math.random() - .5) * 6,
+    vy: -(Math.random() * 5 + 2),
+    color: hexArr[Math.floor(Math.random() * hexArr.length)],
     r: Math.random() * 4 + 3,
     life: 1,
   }));
-
   function frame() {
     ctx.clearRect(0, 0, 200, 220);
     let alive = false;
     for (const p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += .15;
-      p.life -= .025;
+      p.x += p.vx; p.y += p.vy; p.vy += .15; p.life -= .025;
       if (p.life <= 0) continue;
       alive = true;
       ctx.globalAlpha = p.life;
       ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalAlpha = 1;
     if (alive) requestAnimationFrame(frame);
@@ -1140,26 +955,23 @@ function triggerCandyBurst(count) {
 document.getElementById('btn-activate').addEventListener('click', () => {
   if (state.uiPhase !== 'idle') return;
 
-  const turn = state.currentTurn;
+  const turn   = state.currentTurn;
   const batter = state.players[state.batterIndex];
-
-  // Suspense delay
-  const delayMin = config.dropDelayMin;
-  const delayMax = config.dropDelayMax;
-  const steps = Math.round((delayMax - delayMin) / 0.25);
-  const delayMs = Math.round((delayMin + randInt(0, steps) * 0.25) * 1000);
+  const steps  = Math.round((config.dropDelayMax - config.dropDelayMin) / 0.25);
+  const delay  = Math.round((config.dropDelayMin + randInt(0, steps) * 0.25) * 1000);
 
   state.uiPhase = 'suspense';
   renderAll();
 
   setTimeout(() => {
+
     // 1. Final break check
     if (turn >= config.finalBreakStartTurn && checkFinalBreak(turn)) {
-      // --- FINAL BREAK ---
       const pieces = drawCandy(totalCandyInPool(state.candyPool), state.candyPool);
-      const dist = distributeCandy(pieces, state.batterIndex);
+      const dist   = distributeCandy(pieces, state.batterIndex);
       state.uiPhase = 'break';
       state.turnHistory[turn - 1] = { type: 'break' };
+      state.lastTurnResult = { type: 'break', pieces, dist };
 
       logTurn(
         `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
@@ -1168,55 +980,44 @@ document.getElementById('btn-activate').addEventListener('click', () => {
           ? `<span class="dist">→ ${formatDist(dist)}</span>`
           : `<span class="dist">→ Piñata was already empty</span>`)
       );
-
       triggerCandyBurst(pieces.length);
-
       state.roundOver = true;
       if (state.currentRound >= config.totalRounds) state.gameOver = true;
-      state.lastTurnResult = { type: 'break', pieces, dist };
       renderAll();
-
-      setTimeout(() => {
-        state.uiPhase = 'summary';
-        renderAll();
-      }, 1800);
+      setTimeout(() => { state.uiPhase = 'summary'; renderAll(); }, 1800);
       return;
     }
 
     // 2. Drop check
     if (Math.random() >= config.dropChance) {
-      // --- MISS ---
       state.uiPhase = 'result';
       state.turnHistory[turn - 1] = { type: 'miss' };
+      state.lastTurnResult = { type: 'miss' };
       logTurn(
         `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
         ` <span class="miss">${batter.name} (batter) — No drop.</span>`
       );
-      state.lastTurnResult = { type: 'miss' };
-      finishTurn();
-      return;
+      finishTurn(); return;
     }
 
     // 3. Candy amount
-    const phase = getPhaseForTurn(turn);
+    const phase  = getPhaseForTurn(turn);
     const amount = Math.min(randInt(phase.minCandy, phase.maxCandy), totalCandyInPool(state.candyPool));
 
     if (amount === 0) {
-      // pool exhausted
       state.uiPhase = 'result';
       state.turnHistory[turn - 1] = { type: 'miss' };
+      state.lastTurnResult = { type: 'miss' };
       logTurn(
         `<span class="tag">[Round ${state.currentRound} / Turn ${turn}]</span>` +
-        ` <span class="miss">${batter.name} (batter) — Piñata empty, no candy to drop.</span>`
+        ` <span class="miss">${batter.name} (batter) — Piñata empty.</span>`
       );
-      state.lastTurnResult = { type: 'miss' };
-      finishTurn();
-      return;
+      finishTurn(); return;
     }
 
     // 4. Draw & distribute
     const pieces = drawCandy(amount, state.candyPool);
-    const dist = distributeCandy(pieces, state.batterIndex);
+    const dist   = distributeCandy(pieces, state.batterIndex);
     state.uiPhase = 'result';
     state.turnHistory[turn - 1] = { type: 'drop' };
     state.lastTurnResult = { type: 'drop', pieces, dist };
@@ -1229,7 +1030,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
     triggerCandyBurst(pieces.length);
     finishTurn();
 
-  }, delayMs);
+  }, delay);
 });
 
 function finishTurn() {
@@ -1237,7 +1038,6 @@ function finishTurn() {
   advanceBatter();
 
   if (turn >= state.totalTurnsThisRound) {
-    // Natural end of round
     const endResult = resolveEndOfRound();
     state.roundOver = true;
     if (state.currentRound >= config.totalRounds) state.gameOver = true;
@@ -1245,8 +1045,8 @@ function finishTurn() {
     if (config.endOfRoundBehavior === 'release' && endResult.remaining > 0) {
       logTurn(
         `<span class="tag">[Round ${state.currentRound} / End]</span>` +
-        ` <span class="drop">Turns exhausted — ${endResult.pieces?.length ?? 0} piece${endResult.pieces?.length !== 1 ? 's' : ''} released.</span><br>` +
-        (endResult.dist ? `<span class="dist">→ ${formatDist(endResult.dist)}</span>` : '')
+        ` <span class="drop">Turns exhausted — ${endResult.pieces?.length ?? 0} piece${(endResult.pieces?.length ?? 0) !== 1 ? 's' : ''} released.</span>` +
+        (endResult.dist ? `<br><span class="dist">→ ${formatDist(endResult.dist)}</span>` : '')
       );
     } else if (config.endOfRoundBehavior === 'lost' && endResult.remaining > 0) {
       logTurn(
@@ -1256,10 +1056,7 @@ function finishTurn() {
     }
 
     renderAll();
-    setTimeout(() => {
-      state.uiPhase = 'summary';
-      renderAll();
-    }, 800);
+    setTimeout(() => { state.uiPhase = 'summary'; renderAll(); }, 800);
   } else {
     state.currentTurn++;
     state.uiPhase = 'idle';
@@ -1267,7 +1064,7 @@ function finishTurn() {
   }
 }
 
-/* ── Next round / overlay ────────────────────────────────────── */
+/* ── Next round ──────────────────────────────────────────────── */
 document.getElementById('btn-next-round').addEventListener('click', () => {
   if (state.gameOver) return;
   state.currentRound++;
@@ -1276,34 +1073,37 @@ document.getElementById('btn-next-round').addEventListener('click', () => {
   renderAll();
 });
 
-/* ── Control panel inputs ────────────────────────────────────── */
-function bindConfigInput(id, key, transform) {
+/* ── Control panel inputs → pendingConfig ────────────────────── */
+function bindPending(id, key, transform) {
   document.getElementById(id).addEventListener('change', e => {
     const v = transform(e.target.value);
-    if (v !== null && !isNaN(v)) config[key] = v;
+    if (v !== null && !isNaN(v)) pendingConfig[key] = v;
     renderAll();
   });
 }
-bindConfigInput('cfg-numPlayers',        'numPlayers',        v => { const n = parseInt(v); if (n >= 2 && n <= 6) { const old = state.players; state.players = buildPlayers(n, old); return n; } return null; });
-bindConfigInput('cfg-totalRounds',       'totalRounds',       v => parseInt(v));
-bindConfigInput('cfg-candyPerRound',     'candyPerRound',     v => parseInt(v));
-bindConfigInput('cfg-minTurns',          'minTurns',          v => parseInt(v));
-bindConfigInput('cfg-maxTurns',          'maxTurns',          v => parseInt(v));
-bindConfigInput('cfg-dropChance',        'dropChance',        v => parseInt(v) / 100);
-bindConfigInput('cfg-finalBreakStartTurn','finalBreakStartTurn', v => parseInt(v));
-bindConfigInput('cfg-finalBreakStartPct','finalBreakStartPct', v => parseInt(v) / 100);
-bindConfigInput('cfg-finalBreakEndPct',  'finalBreakEndPct',  v => parseInt(v) / 100);
-bindConfigInput('cfg-dropDelayMin',      'dropDelayMin',      v => parseFloat(v));
-bindConfigInput('cfg-dropDelayMax',      'dropDelayMax',      v => parseFloat(v));
+
+bindPending('cfg-numPlayers',          'numPlayers',          v => { const n = parseInt(v); return (n >= 2 && n <= 6) ? n : null; });
+bindPending('cfg-totalRounds',         'totalRounds',         v => parseInt(v));
+bindPending('cfg-candyPerRound',       'candyPerRound',       v => parseInt(v));
+bindPending('cfg-numCandyColors',      'numCandyColors',      v => { const n = parseInt(v); return (n >= 1 && n <= 5) ? n : null; });
+bindPending('cfg-minTurns',            'minTurns',            v => parseInt(v));
+bindPending('cfg-maxTurns',            'maxTurns',            v => parseInt(v));
+bindPending('cfg-dropChance',          'dropChance',          v => parseInt(v) / 100);
+bindPending('cfg-finalBreakStartTurn', 'finalBreakStartTurn', v => parseInt(v));
+bindPending('cfg-finalBreakStartPct',  'finalBreakStartPct',  v => parseInt(v) / 100);
+bindPending('cfg-finalBreakEndPct',    'finalBreakEndPct',    v => parseInt(v) / 100);
+bindPending('cfg-dropDelayMin',        'dropDelayMin',        v => parseFloat(v));
+bindPending('cfg-dropDelayMax',        'dropDelayMax',        v => parseFloat(v));
 
 document.getElementById('cfg-endOfRoundBehavior').addEventListener('change', e => {
-  config.endOfRoundBehavior = e.target.value;
+  pendingConfig.endOfRoundBehavior = e.target.value;
+  renderAll();
 });
 
 /* ── Add phase ───────────────────────────────────────────────── */
 document.getElementById('btn-add-phase').addEventListener('click', () => {
-  const last = config.phases.at(-1);
-  config.phases.push({
+  const last = pendingConfig.phases.at(-1);
+  pendingConfig.phases.push({
     startTurn: (last?.endTurn ?? 0) + 1,
     endTurn:   (last?.endTurn ?? 0) + 5,
     minCandy:  last?.minCandy ?? 1,
@@ -1324,13 +1124,16 @@ document.getElementById('btn-restart-round').addEventListener('click', () => {
 
 document.getElementById('btn-restart-game').addEventListener('click', () => {
   if (state.uiPhase === 'suspense') return;
+  // Apply pending config before restarting
+  Object.assign(config, structuredClone(pendingConfig));
   initGame();
   document.getElementById('event-log').innerHTML = '';
   renderAll();
 });
 
 document.getElementById('btn-load-defaults').addEventListener('click', () => {
-  Object.assign(config, structuredClone(DEFAULTS));
+  Object.assign(config,        structuredClone(DEFAULTS));
+  Object.assign(pendingConfig, structuredClone(DEFAULTS));
   initGame();
   document.getElementById('event-log').innerHTML = '';
   renderAll();
