@@ -104,17 +104,14 @@
       box-shadow: 0 1px 4px rgba(0,0,0,.5);
     }
 
-    /* ── Candy bar ─────────────────────────────────────────────────── */
-    .candy-bar-wrap { width: 100%; max-width: 320px; text-align: center; }
-    .candy-bar-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-    .candy-bar-track { width: 100%; height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; }
-    .candy-bar-fill  { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 6px; transition: width .4s ease; }
+    /* ── Candy count label ─────────────────────────────────────────── */
+    .candy-bar-label { font-size: 12px; color: var(--text-muted); text-align: center; }
 
     /* ── Turn tracker ──────────────────────────────────────────────── */
-    .turn-tracker { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: 340px; }
+    .turn-tracker { display: flex; flex-wrap: nowrap; gap: 4px; justify-content: center; max-width: 100%; }
     .turn-dot {
-      width: 18px; height: 18px; border-radius: 4px; background: var(--surface3);
-      transition: background .3s;
+      width: 16px; height: 16px; min-width: 10px; border-radius: 3px; background: var(--surface3);
+      flex: 0 1 16px; transition: background .3s;
     }
     .turn-dot.current { background: var(--surface3); box-shadow: 0 0 0 2px var(--accent2); }
     .turn-dot.miss    { background: #b0bcd8; }
@@ -280,6 +277,11 @@
 
   <div id="pinata-wrap">
     <svg id="pinata-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="belly-clip">
+          <ellipse cx="84" cy="130" rx="38" ry="24"/>
+        </clipPath>
+      </defs>
 
       <!-- string -->
       <line x1="88" y1="0" x2="88" y2="79" stroke="#b8906a" stroke-width="3" stroke-linecap="round"/>
@@ -300,6 +302,12 @@
       <ellipse cx="95" cy="122" rx="60" ry="43" fill="none" stroke="#ffd700" stroke-width="9"  stroke-dasharray="7 4" opacity=".9"/>
       <ellipse cx="95" cy="122" rx="47" ry="33" fill="none" stroke="#1a9fff" stroke-width="7"  stroke-dasharray="6 4" opacity=".8"/>
       <ellipse cx="95" cy="122" rx="34" ry="23" fill="none" stroke="#c050ff" stroke-width="5"  stroke-dasharray="5 3" opacity=".7"/>
+
+      <!-- belly window (gumball view) -->
+      <ellipse cx="84" cy="130" rx="40" ry="26" fill="rgba(80,0,25,0.32)" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+      <g id="candy-fill" clip-path="url(#belly-clip)"></g>
+      <!-- window gloss -->
+      <ellipse cx="72" cy="119" rx="13" ry="7" fill="rgba(255,255,255,0.22)" transform="rotate(-25,72,119)"/>
 
       <!-- body highlight -->
       <ellipse cx="74" cy="96" rx="20" ry="13" fill="rgba(255,255,255,.15)" transform="rotate(-15,74,96)"/>
@@ -377,10 +385,7 @@
 
   <div id="break-banner">⚡ PIÑATA BROKEN ⚡</div>
 
-  <div class="candy-bar-wrap">
-    <div class="candy-bar-label" id="candy-bar-label">Candy: — / —</div>
-    <div class="candy-bar-track"><div class="candy-bar-fill" id="candy-bar-fill" style="width:100%"></div></div>
-  </div>
+  <div class="candy-bar-label" id="candy-bar-label">Candy: — / —</div>
 
   <div class="turn-tracker" id="turn-tracker"></div>
 
@@ -561,6 +566,23 @@ const pendingConfig = structuredClone(DEFAULTS);
 function getActiveColors(cfg) {
   return MASTER_COLORS.slice(0, cfg.numCandyColors ?? 5);
 }
+
+// Pre-computed candy dot positions inside the belly window (cx=84,cy=130,rx=38,ry=24).
+// Sorted bottom-row-first so dots drain from the top as candy decreases.
+const BELLY_POSITIONS = (() => {
+  const cx = 84, cy = 130, rx = 38, ry = 24, r = 3, sp = 8;
+  const pts = [];
+  for (let y = cy - ry + r + 3; y <= cy + ry - r - 3; y += sp) {
+    const dy = y - cy;
+    const hw = rx * Math.sqrt(Math.max(0, 1 - (dy * dy) / (ry * ry))) - r - 2;
+    if (hw < sp / 2) continue;
+    for (let x = cx - hw; x <= cx + hw + 0.5; x += sp) {
+      pts.push([Math.round(x), Math.round(y)]);
+    }
+  }
+  pts.sort((a, b) => b[1] - a[1] || a[0] - b[0]); // bottom rows first
+  return pts;
+})();
 
 function hasPendingChanges() {
   return JSON.stringify(config) !== JSON.stringify(pendingConfig);
@@ -748,6 +770,39 @@ function renderPlayers() {
   });
 }
 
+function renderCandyFill() {
+  const g = document.getElementById('candy-fill');
+  while (g.lastChild) g.removeChild(g.lastChild);
+  const remaining = totalCandyInPool(state.candyPool);
+  if (remaining === 0 || config.candyPerRound === 0) return;
+
+  const slots = Math.min(
+    Math.round((remaining / config.candyPerRound) * BELLY_POSITIONS.length),
+    BELLY_POSITIONS.length
+  );
+  if (slots === 0) return;
+
+  // Build color sequence proportional to the actual pool, spread across slots
+  const colors = getActiveColors(config);
+  const seq = [];
+  for (const c of colors) {
+    const n = Math.round((state.candyPool[c] ?? 0) / remaining * slots);
+    for (let i = 0; i < n; i++) seq.push(c);
+  }
+  while (seq.length < slots) seq.push(colors[seq.length % colors.length]);
+
+  const ns = 'http://www.w3.org/2000/svg';
+  for (let i = 0; i < slots; i++) {
+    const [x, y] = BELLY_POSITIONS[i];
+    const circle = document.createElementNS(ns, 'circle');
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', 3);
+    circle.setAttribute('fill', COLOR_HEX[seq[i]] ?? '#888');
+    g.appendChild(circle);
+  }
+}
+
 function renderCenterPanel() {
   // Round/turn display
   document.getElementById('round-turn-display').innerHTML = state.gameOver
@@ -755,11 +810,10 @@ function renderCenterPanel() {
     : `Round <strong>${state.currentRound}</strong> of <strong>${config.totalRounds}</strong>` +
       ` &nbsp;·&nbsp; Turn <strong>${state.currentTurn}</strong> of <strong>${state.totalTurnsThisRound ?? '?'}</strong>`;
 
-  // Candy bar
+  // Candy count label + belly fill
   const remaining = totalCandyInPool(state.candyPool);
-  const pct = config.candyPerRound > 0 ? (remaining / config.candyPerRound) * 100 : 0;
-  document.getElementById('candy-bar-label').textContent = `Candy: ${remaining} / ${config.candyPerRound}`;
-  document.getElementById('candy-bar-fill').style.width = `${pct}%`;
+  document.getElementById('candy-bar-label').textContent = `${remaining} / ${config.candyPerRound} candy`;
+  renderCandyFill();
 
   // Last drop display
   const lastDrop = document.getElementById('last-drop');
