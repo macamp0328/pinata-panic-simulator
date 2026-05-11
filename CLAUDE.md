@@ -14,19 +14,58 @@ It is not a polished game. It is a playtesting instrument.
 
 - Vanilla HTML/CSS/JS ES2022 — no frameworks, no CDN, no build tools
 - Inline SVG for graphics — no external image files
+- Light theme using CSS custom properties; no dark-mode media queries
 - Evergreen browsers only (last 2 years: Chrome, Safari, Firefox, Edge)
 - No localStorage, no network calls, no external dependencies
+
+## Design tokens (light theme depth stack)
+
+```css
+--bg:       #edf1f8;   /* page bg, input fields (recessed)   */
+--surface:  #ffffff;   /* panel column backgrounds            */
+--surface2: #f4f7fc;   /* cards, event log, overlay           */
+--surface3: #e2e8f4;   /* buttons, inactive turn dots         */
+--border:   #c4cfe8;   /* dividers, field outlines            */
+--text:     #1a2240;
+--text-muted: #5870a0;
+--accent:   #e94560;   /* red — break events, ACTIVATE btn   */
+--accent2:  #d4820a;   /* dark orange — drop events, batter  */
+```
+
+## Candy color system
+
+There are always exactly 5 colors in the master palette. `numCandyColors` (1–5) controls how many are active.
+
+```js
+const MASTER_COLORS = ['red', 'orange', 'green', 'blue', 'purple'];
+
+const COLOR_HEX = {
+  red:    '#ff3b3b',
+  orange: '#ff8c00',
+  green:  '#00d26a',
+  blue:   '#1a9fff',
+  purple: '#c050ff',
+};
+
+function getActiveColors(cfg) {
+  return MASTER_COLORS.slice(0, cfg.numCandyColors ?? 5);
+}
+```
+
+Always use `getActiveColors(config)` — never read `config.candyColors` directly (it doesn't exist).
 
 ## Core data structures
 
 ```javascript
-// Config — all tunable values, driven by the control panel
+// Config — active values used by the running game
+// pendingConfig — what the control panel shows; applied to config on Restart Game
 const config = {
   numPlayers: 4,
   totalRounds: 3,
   candyPerRound: 50,
+  numCandyColors: 5,
   endOfRoundBehavior: 'release',   // 'release' | 'lost'
-  minTurns: 10,
+  minTurns: 16,
   maxTurns: 16,
   dropChance: 0.5,
   phases: [
@@ -39,40 +78,59 @@ const config = {
   finalBreakEndPct: 0.40,
   dropDelayMin: 0,
   dropDelayMax: 3,
-  candyColors: ['black', 'green', 'yellow', 'blue', 'pink'],
 };
 
-// State — runtime, not directly user-editable
+// State — runtime, never mutated directly by UI
 const state = {
   currentRound: 1,
   currentTurn: 1,
-  totalTurnsThisRound: null,       // rolled at round start
-  batterIndex: 0,                  // index into players array
-  candyPool: {},                   // { black: 10, green: 10, ... }
+  totalTurnsThisRound: null,     // rolled at round start
+  batterIndex: 0,                // index into players array
+  candyPool: {},                 // { red: 10, orange: 10, ... }
   players: [
-    { name: 'Player 1', roundCandy: 0, totalCandy: 0, colorCounts: {} },
-    // ...
+    { name: 'Dizzy', roundCandy: 0, totalCandy: 0, colorCounts: {} },
+    // ... names come from PLAYER_NAME_POOL, not 'Player N'
   ],
   roundOver: false,
   gameOver: false,
-  uiPhase: 'idle',                 // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
+  uiPhase: 'idle',              // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
+  turnHistory: [],              // [{ type: 'miss'|'drop'|'break' }, ...]
+  lastTurnResult: null,         // { type, pieces, dist } — drives last-drop display
 };
 ```
 
+## Pending config pattern
+
+The control panel writes to `pendingConfig`, not `config`. The active game always reads from `config`.
+
+- `hasPendingChanges()` compares `JSON.stringify(config)` vs `JSON.stringify(pendingConfig)`
+- A yellow warning banner appears when they differ
+- **Restart Game** calls `Object.assign(config, structuredClone(pendingConfig))` then `initGame()`
+- **Load Defaults** applies to both objects immediately
+
 ## Phase overlap rule
 
-**Last matching phase wins.** The code scans the full phases array and applies whichever phase *last* matches the current turn number — analogous to CSS cascade. A phase added at the bottom of the list overrides any earlier phase that covers the same turns. If no phase matches, fall back to the last phase in the array.
+**Last matching phase wins.** The code scans the full phases array and applies whichever phase *last* matches the current turn number — analogous to CSS cascade. A phase added at the bottom overrides any earlier phase for the same turns. If no phase matches, fall back to the last phase in the array.
+
+## Player names
+
+Players get random names from `PLAYER_NAME_POOL` (25 fun names) at game start via `pickRandomNames(count)`. Names are preserved across rounds; `buildPlayers()` only assigns a fresh random name when a player slot has no existing name.
 
 ## JS organization rule
 
-The `<script>` block is divided into five sections. **Do not mix concerns between sections.**
+The `<script>` block is divided into six sections. **Do not mix concerns between sections.**
 
-1. **Config** — tunable defaults, flat object, no logic
-2. **State** — runtime state, never mutated directly by the UI
+1. **Config** — `MASTER_COLORS`, `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`
+2. **State** — runtime state object, never mutated directly by UI
 3. **Game logic** — pure functions, no DOM access
 4. **Render** — `renderAll()` reads state and syncs the entire DOM; all DOM writes happen here
 5. **Events** — `addEventListener` calls that invoke logic, then call `renderAll()`
+6. **Init** — `initGame(); renderAll();`
+
+## Event log
+
+Each turn appends a `.log-card` element (not raw HTML strings). Use `logEntry({ type, round, turn, batterName, pieces, dist, remaining })` where `type` is one of: `'miss'`, `'drop'`, `'break'`, `'end-release'`, `'end-lost'`. The function builds the card DOM directly — do not use `innerHTML` for log entries.
 
 ## Control panel timing
 
-Control panel changes take effect on the **next turn**, not mid-turn. The `config` object is read at the start of each turn's logic.
+Control panel changes go into `pendingConfig` and are **not active** until the user presses **Restart Game**. A warning banner (`#pending-banner`) becomes visible whenever `config` and `pendingConfig` differ.
