@@ -21,22 +21,93 @@ The **event log** shows a card for every turn — candy drops display colored pi
 
 Players get random fun names at the start of each game (Dizzy, Blaze, Mochi, etc.) but can be renamed by clicking their name in the player panel.
 
-## What the control panel does
+## Control panel reference
 
-All tunable variables are on the right. **Changes take effect when you press Restart Game** — a warning banner appears while you have unsaved changes.
+All tunable variables are in the right-side panel. **None of your changes take effect until you press Restart Game** — a yellow warning banner appears whenever you have unsaved changes. You can tweak as many settings as you like before restarting.
 
-| Section | Controls |
+---
+
+### Game Setup
+
+**Players** *(default: 4, range: 2–6)*
+How many players are in the game. Each player gets a card on the left showing their candy totals. You can click any player's name to rename them.
+
+**Total rounds** *(default: 3)*
+How many rounds make up a full game. Scores carry over between rounds; the player with the most candy at the end wins.
+
+**Candy per round** *(default: 50)*
+How many pieces of candy the piñata holds at the start of each round. This resets every round regardless of how many pieces were left over.
+
+**Candy colors** *(default: 5, range: 1–5)*
+How many candy colors are in the mix. Colors are always drawn from the same ordered list — red, orange, green, blue, purple — so setting this to 3 means only red, orange, and green are used. Candy is split evenly across the active colors.
+
+**End of round** *(default: release)*
+What happens to candy still inside the piñata when all turns run out without a final break:
+- **release** — remaining candy drops and distributes to players normally, just without any fanfare
+- **lost** — candy disappears and no one gets it (tests what happens when the piñata "survives" a round)
+
+---
+
+### Turn Structure
+
+**Min turns / Max turns** *(default: both 16)*
+At the start of each round, the simulator secretly rolls a number of turns between these two values. Setting both to the same number makes every round exactly that long. The rolled count is shown in the round/turn display ("Turn 1 of 16").
+
+> Note: even with 16 turns set, a round can end earlier if the final break triggers (see below).
+
+**Drop chance** *(default: 50%)*
+The base probability that any candy falls on a given turn. A 50% chance means roughly half of all turns will produce a drop. Raise this to make candy fall more consistently; lower it to make turns feel more unpredictable.
+
+---
+
+### Turn Phases
+
+Phases let you control *how much* candy falls at different points in a round. Each phase covers a range of turns and sets a min and max number of pieces that can fall on any turn within that window.
+
+| Column | Meaning |
 |---|---|
-| **Game Setup** | Players (2–6), total rounds, candy per round, candy colors (1–5), end-of-round behavior (release leftover or lose it) |
-| **Turn Structure** | Min/max turns per round, base drop chance % |
-| **Turn Phases** | Editable list of turn windows with min/max candy amounts. Last matching phase wins on overlap. |
-| **Final Break** | Start turn, start %, end % — probability interpolates linearly across the eligible window |
-| **Drop Timing** | Suspense delay range (0–10 sec, in 0.25-sec steps) |
+| **Start** | The first turn this phase applies to |
+| **End** | The last turn this phase applies to |
+| **Min** | Fewest pieces that can fall on a drop turn in this window |
+| **Max** | Most pieces that can fall on a drop turn in this window |
 
-**Buttons:**
-- **Restart Round** — resets turn count and candy for the current round; keeps cumulative scores
-- **Restart Game** — applies any pending control panel changes, then resets everything
-- **Load Defaults** — restores all variables to factory defaults and restarts
+The defaults create an escalating feel — early turns drop 1–3 pieces, middle turns drop 2–4, late turns drop 3–5.
+
+You can add phases with the **+ Add phase** button and remove any phase with the **×** button. If two phases cover the same turn, the one lower in the list wins (last match wins, like CSS). A warning appears if any turn in the round isn't covered by any phase.
+
+---
+
+### Final Break
+
+Starting at the **Start turn**, every turn has a chance of triggering a final break — the piñata bursts open and all remaining candy falls at once. The probability starts low and climbs as the round progresses.
+
+**Start turn** *(default: 10)*
+The first turn where a final break can happen. Turns before this have zero break chance.
+
+**Start %** *(default: 5%)*
+The probability of a break on the very first eligible turn. 5% means it's unlikely but possible early on.
+
+**End %** *(default: 40%)*
+The probability of a break on the last possible turn (Max turns). By default, there's a 40% chance the piñata breaks on turn 16 if it hasn't already.
+
+The probability climbs smoothly between these two values across the eligible turns. For example with defaults: 5% on turn 10, ~11% on turn 11, ~17% on turn 12, and so on up to 40% on turn 16.
+
+---
+
+### Drop Timing
+
+**Delay min / Delay max** *(default: 0 sec / 3 sec)*
+Controls the suspense window between pressing ACTIVATE and seeing the result. Each turn picks a random delay between these two values (in 0.25-second increments). The piñata shakes during this window. Set both to 0 for instant results during rapid playtesting.
+
+---
+
+### Buttons
+
+**Restart Round** — Resets the current round from turn 1 with a full candy refill. Player scores from completed rounds are kept. Does *not* apply any pending control panel changes.
+
+**Restart Game** — Applies all pending control panel changes, then resets everything: scores, rounds, and candy. Use this after editing the control panel.
+
+**Load Defaults** — Restores every setting to its factory default value and immediately starts a fresh game.
 
 ## Candy colors
 
