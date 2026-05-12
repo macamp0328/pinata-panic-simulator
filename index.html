@@ -72,6 +72,7 @@
     #panel-center {
       display: flex; flex-direction: column; align-items: center; gap: 10px;
       padding: 16px 24px; overflow-y: auto; background: var(--bg);
+      min-height: 0;
     }
 
     .round-turn-display { font-size: 13px; color: var(--text-muted); text-align: center; }
@@ -120,13 +121,18 @@
 
     /* ── ACTIVATE button ───────────────────────────────────────────── */
     #btn-activate {
-      padding: 16px 48px; font-size: 20px; font-weight: 700; letter-spacing: .06em;
+      padding: 12px 40px; font-size: 18px; font-weight: 700; letter-spacing: .06em;
       background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
       cursor: pointer; box-shadow: var(--shadow); transition: background .15s, transform .1s, opacity .2s;
+      line-height: 1.3; text-align: center;
     }
     #btn-activate:hover:not(:disabled) { background: #c73350; transform: translateY(-1px); }
     #btn-activate:active:not(:disabled) { transform: translateY(1px); }
     #btn-activate:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    #btn-activate .btn-sub {
+      display: block; font-size: 12px; font-weight: 400;
+      opacity: 0.82; letter-spacing: 0; margin-top: 2px;
+    }
 
     /* ── Sound row & mute button ───────────────────────────────────── */
     #sound-row { display: flex; align-items: center; gap: 10px; }
@@ -140,12 +146,19 @@
     #btn-mute.muted { opacity: .4; }
 
     /* ── Event log ─────────────────────────────────────────────────── */
-    #event-log-wrap { width: 100%; max-width: 440px; }
+    #event-log-wrap {
+      flex: 1; min-height: 0; width: 100%; max-width: 440px;
+      display: flex; flex-direction: column;
+    }
     #event-log {
+      flex: 1; min-height: 160px;
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 8px; height: 200px; overflow-y: auto;
+      padding: 8px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 6px;
     }
+
+    /* ── Candy fill dots ───────────────────────────────────────────── */
+    #candy-fill circle { transition: opacity 0.3s ease; }
     .log-card {
       border-radius: 6px; padding: 9px 11px;
       border-left: 3px solid transparent; font-size: 12px; line-height: 1.4;
@@ -264,8 +277,15 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* ── Responsive: single-column below 700px ─────────────────────── */
-    @media (max-width: 700px) {
+    /* ── Responsive: tighter columns 641–900px ────────────────────── */
+    @media (min-width: 641px) and (max-width: 900px) {
+      body { grid-template-columns: 180px 1fr 220px; }
+      .ctrl-input { width: 60px; }
+      select.ctrl-input { width: auto; }
+    }
+
+    /* ── Responsive: single-column below 641px ──────────────────────── */
+    @media (max-width: 640px) {
       body {
         grid-template-columns: 1fr;
         height: auto;
@@ -275,19 +295,20 @@
       }
       /* Action area first, scores second, settings last */
       #panel-center  { order: 1; overflow-y: visible; padding: 12px 16px;
-                       border-right: none; border-bottom: 1px solid var(--border); }
+                       flex: none; border-right: none; border-bottom: 1px solid var(--border); }
       #panel-players { order: 2; overflow-y: visible;
                        border-right: none; border-bottom: 1px solid var(--border); }
       #panel-controls { order: 3; overflow-y: visible; border-right: none; }
+
+      /* Event log: undo flex-grow, use fixed height on mobile */
+      #event-log-wrap { flex: none; }
+      #event-log { flex: none; min-height: 0; height: 180px; }
 
       /* Shrink piñata so it doesn't dominate a small screen */
       #pinata-wrap, #pinata-svg { width: 160px; height: 176px; }
       #candy-burst { width: 160px; height: 176px; }
 
-      /* Event log: fixed height so it doesn't push controls far down */
-      #event-log { height: 160px; }
-
-      /* Turn tracker: allow gentle wrap on very small screens */
+      /* Turn tracker: allow wrap on very small screens */
       .turn-tracker { flex-wrap: wrap; }
     }
   </style>
@@ -421,7 +442,7 @@
   <div class="turn-tracker" id="turn-tracker"></div>
 
   <div id="sound-row">
-    <button id="btn-activate">ACTIVATE</button>
+    <button id="btn-activate">Hit Piñata</button>
     <button id="btn-mute" title="Toggle sound">🔊</button>
   </div>
   </div><!-- end #pinata-controls -->
@@ -600,13 +621,14 @@ function getActiveColors(cfg) {
 }
 
 // Pre-computed candy dot positions inside the belly window (cx=84,cy=130,rx=38,ry=24).
-// Sorted bottom-row-first so dots drain from the top as candy decreases.
+// r=4, spacing=6 → dots slightly overlap like packed gumballs (~68 slots).
+// Sorted bottom-row-first so the fill level drains from the top.
 const BELLY_POSITIONS = (() => {
-  const cx = 84, cy = 130, rx = 38, ry = 24, r = 3, sp = 8;
+  const cx = 84, cy = 130, rx = 38, ry = 24, r = 4, sp = 6;
   const pts = [];
-  for (let y = cy - ry + r + 3; y <= cy + ry - r - 3; y += sp) {
+  for (let y = cy - ry + r + 2; y <= cy + ry - r - 2; y += sp) {
     const dy = y - cy;
-    const hw = rx * Math.sqrt(Math.max(0, 1 - (dy * dy) / (ry * ry))) - r - 2;
+    const hw = rx * Math.sqrt(Math.max(0, 1 - (dy * dy) / (ry * ry))) - r - 1;
     if (hw < sp / 2) continue;
     for (let x = cx - hw; x <= cx + hw + 0.5; x += sp) {
       pts.push([Math.round(x), Math.round(y)]);
@@ -801,36 +823,58 @@ function renderPlayers() {
   });
 }
 
-function renderCandyFill() {
+function initCandyFill() {
   const g = document.getElementById('candy-fill');
-  while (g.lastChild) g.removeChild(g.lastChild);
+  const ns = 'http://www.w3.org/2000/svg';
+  BELLY_POSITIONS.forEach(([x, y]) => {
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', x);
+    c.setAttribute('cy', y);
+    c.setAttribute('r', 4);
+    c.setAttribute('fill', '#888');
+    c.setAttribute('stroke', 'rgba(0,0,0,0.30)');
+    c.setAttribute('stroke-width', '0.8');
+    c.style.opacity = '0';
+    g.appendChild(c);
+  });
+}
+
+function renderCandyFill() {
+  const circles = document.getElementById('candy-fill').children;
+  if (!circles.length) return;
   const remaining = totalCandyInPool(state.candyPool);
-  if (remaining === 0 || config.candyPerRound === 0) return;
+  const total = config.candyPerRound;
+  if (total === 0) return;
 
-  const slots = Math.min(
-    Math.round((remaining / config.candyPerRound) * BELLY_POSITIONS.length),
-    BELLY_POSITIONS.length
+  const slots = remaining === 0 ? 0 : Math.min(
+    Math.round((remaining / total) * circles.length),
+    circles.length
   );
-  if (slots === 0) return;
 
-  // Build color sequence proportional to the actual pool, spread across slots
+  // Build color sequence proportional to current pool, then shuffle so
+  // colors are visually mixed (not grouped in solid blocks)
   const colors = getActiveColors(config);
   const seq = [];
-  for (const c of colors) {
-    const n = Math.round((state.candyPool[c] ?? 0) / remaining * slots);
-    for (let i = 0; i < n; i++) seq.push(c);
+  if (remaining > 0) {
+    for (const c of colors) {
+      const n = Math.round((state.candyPool[c] ?? 0) / remaining * slots);
+      for (let i = 0; i < n; i++) seq.push(c);
+    }
+    while (seq.length < slots) seq.push(colors[seq.length % colors.length]);
+    // Fisher-Yates shuffle
+    for (let i = seq.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [seq[i], seq[j]] = [seq[j], seq[i]];
+    }
   }
-  while (seq.length < slots) seq.push(colors[seq.length % colors.length]);
 
-  const ns = 'http://www.w3.org/2000/svg';
-  for (let i = 0; i < slots; i++) {
-    const [x, y] = BELLY_POSITIONS[i];
-    const circle = document.createElementNS(ns, 'circle');
-    circle.setAttribute('cx', x);
-    circle.setAttribute('cy', y);
-    circle.setAttribute('r', 3);
-    circle.setAttribute('fill', COLOR_HEX[seq[i]] ?? '#888');
-    g.appendChild(circle);
+  for (let i = 0; i < circles.length; i++) {
+    if (i < slots) {
+      circles[i].setAttribute('fill', COLOR_HEX[seq[i]] ?? '#888');
+      circles[i].style.opacity = '1';
+    } else {
+      circles[i].style.opacity = '0';
+    }
   }
 }
 
@@ -887,7 +931,12 @@ function renderCenterPanel() {
   // Activate button
   const btn = document.getElementById('btn-activate');
   btn.disabled = state.uiPhase === 'suspense' || state.roundOver || state.gameOver;
-  btn.textContent = state.uiPhase === 'suspense' ? 'ACTIVATING…' : 'ACTIVATE';
+  if (state.uiPhase === 'suspense') {
+    btn.innerHTML = 'Hitting…';
+  } else {
+    const batterName = state.players[state.batterIndex]?.name ?? 'Player';
+    btn.innerHTML = `Hit Piñata<span class="btn-sub">Play ${batterName}'s turn</span>`;
+  }
 
   renderSummaryPanel();
 }
@@ -1373,6 +1422,7 @@ document.getElementById('btn-load-defaults').addEventListener('click', () => {
    6. INIT
    ═══════════════════════════════════════════════════════════════ */
 initGame();
+initCandyFill();
 renderAll();
 </script>
 </body>
