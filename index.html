@@ -144,6 +144,17 @@
     }
     #btn-mute:hover { background: #d0d8ee; }
     #btn-mute.muted { opacity: .4; }
+    #btn-autoplay {
+      background: var(--surface3); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 6px 14px; font-size: 0.82rem; cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s; flex-shrink: 0;
+    }
+    #btn-autoplay:hover:not(:disabled) { background: #d0d8ee; }
+    #btn-autoplay.active {
+      background: var(--accent2); color: #fff; border-color: var(--accent2);
+    }
+    #btn-autoplay:disabled { opacity: 0.4; cursor: default; }
 
     /* ── Event log ─────────────────────────────────────────────────── */
     #event-log-wrap {
@@ -531,6 +542,7 @@
 
   <div id="sound-row">
     <button id="btn-activate">Hit Piñata</button>
+    <button id="btn-autoplay" title="Toggle autoplay">⏵ Auto</button>
     <button id="btn-mute" title="Toggle sound">🔊</button>
   </div>
   </div><!-- end #pinata-controls -->
@@ -793,6 +805,7 @@ const state = {
   roundGoals: { goalB: null, goalC: null, goalCThreshold: 0 },
   droppedLicoriceCount: 0,  // licorice pieces that fell in drop events this round
   roundScoreHistory: [],    // [{round, goals, favoriteCards, scores, playerSnapshots}]
+  autoplay: false,
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -842,6 +855,7 @@ function initGame() {
   state.gameOver      = false;
   state.lastTurnResult = null;
   state.roundScoreHistory = [];
+  state.autoplay      = false;
   state.players = buildPlayers(config.numPlayers, state.players);
   initRound(true);
 }
@@ -855,6 +869,7 @@ function initRound(freshGame = false) {
   state.lastTurnResult = null;
   state.turnHistory = [];
   state.droppedLicoriceCount = 0;
+  state.autoplay    = false;
   state.favoriteColorCards = dealFavoriteCards();
   state.roundGoals = drawRoundGoals();
   if (!freshGame) {
@@ -1238,6 +1253,12 @@ function renderCenterPanel() {
     const batterName = state.players[state.batterIndex]?.name ?? 'Player';
     btn.innerHTML = `Hit Piñata<span class="btn-sub">Play ${batterName}'s turn</span>`;
   }
+
+  // Autoplay button
+  const btnAuto = document.getElementById('btn-autoplay');
+  btnAuto.disabled = state.roundOver || state.gameOver || state.uiPhase === 'summary';
+  btnAuto.classList.toggle('active', state.autoplay);
+  btnAuto.textContent = state.autoplay ? '⏸ Auto' : '⏵ Auto';
 
   renderSummaryPanel();
 }
@@ -1753,8 +1774,20 @@ function finishTurn() {
     state.currentTurn++;
     state.uiPhase = 'idle';
     renderAll();
+    if (state.autoplay) {
+      setTimeout(() => document.getElementById('btn-activate').click(), 700);
+    }
   }
 }
+
+/* ── Autoplay toggle ─────────────────────────────────────────── */
+document.getElementById('btn-autoplay').addEventListener('click', () => {
+  state.autoplay = !state.autoplay;
+  renderAll();
+  if (state.autoplay && state.uiPhase === 'idle' && !state.roundOver && !state.gameOver) {
+    setTimeout(() => document.getElementById('btn-activate').click(), 600);
+  }
+});
 
 /* ── Mute toggle ─────────────────────────────────────────────── */
 document.getElementById('btn-mute').addEventListener('click', () => {
