@@ -1,4 +1,6 @@
-# Piñata Panic — Mechanics Simulator: Claude Code Context
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Purpose
 
@@ -118,14 +120,24 @@ Players get random names from `PLAYER_NAME_POOL` (25 fun names) at game start vi
 
 ## JS organization rule
 
-The `<script>` block is divided into six sections. **Do not mix concerns between sections.**
+The `<script>` block is divided into seven sections. **Do not mix concerns between sections.**
 
-1. **Config** — `MASTER_COLORS`, `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`
+1. **Config** — `MASTER_COLORS`, `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`, `BELLY_POSITIONS` (precomputed candy dot positions for the belly window)
 2. **State** — runtime state object, never mutated directly by UI
 3. **Game logic** — pure functions, no DOM access
-4. **Render** — `renderAll()` reads state and syncs the entire DOM; all DOM writes happen here
-5. **Events** — `addEventListener` calls that invoke logic, then call `renderAll()`
-6. **Init** — `initGame(); renderAll();`
+4. **Render** — `renderAll()` reads state and syncs the entire DOM; all DOM writes happen here. `renderAll()` calls `renderPlayers()`, `renderCenterPanel()`, `renderControlPanel()`. `renderCenterPanel()` calls `renderTurnTracker()`, `renderCandyFill()`, `renderSummaryPanel()`.
+5. **Audio** — Web Audio API helpers (`tone()`, `soundSwing()`, `soundMiss()`, `soundCandyPop()`, `soundBreak()`, `soundRoundEnd()`, `soundGameOver()`). Lazy-initializes `AudioContext` on first use.
+6. **Events** — `addEventListener` calls that invoke logic, then call `renderAll()`
+7. **Init** — `initGame(); initCandyFill(); renderAll();` (`initCandyFill` populates the SVG `#candy-fill` group with pre-positioned circles once; `renderCandyFill` then controls their opacity each render)
+
+## Turn resolution flow
+
+The ACTIVATE button drives a `suspense → result/break → idle` cycle:
+1. Button click: `uiPhase = 'suspense'`, button disabled, piñata shakes
+2. After a random delay (`dropDelayMin`–`dropDelayMax`): final-break check, then drop check, then candy draw/distribute
+3. `uiPhase` set to `'result'` (miss or drop) or `'break'`
+4. `finishTurn()` called after non-break turns: advances batter, increments turn, resolves end-of-round if last turn
+5. End-of-round triggers a timeout, then `uiPhase = 'summary'`
 
 ## Event log
 
