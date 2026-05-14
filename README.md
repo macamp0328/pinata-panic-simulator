@@ -6,6 +6,8 @@ A browser-based sandbox for playtesting and tuning the core mechanics of **Piña
 
 Open `index.html` in any modern browser (Chrome, Safari, Firefox, Edge). No server, no install, no build step — double-click the file and it works.
 
+Alternatively, the simulator is hosted on GitHub Pages at https://macamp0328.github.io/pinata-panic-simulator/
+
 ## What the simulator does
 
 Each session simulates a full multi-round game of Piñata Panic:
