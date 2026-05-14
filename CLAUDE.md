@@ -73,7 +73,7 @@ A few candies may be lost to rounding. This is intentional (fairness guarantee f
 Points are tallied at the end of each round via `scoreRound()` and applied via `applyRoundScoring()`.
 
 ### Favorite Color cards (secret, per player)
-- `dealFavoriteCards()` builds a deck of 2× each active non-licorice color, shuffles, and deals one per player
+- `dealFavoriteCards()` builds a deck of 2× each active non-licorice color, shuffles, and deals one per player using `deck[i % deck.length]` — cycles if there are more players than cards (possible when few colors are active)
 - Stored in `state.favoriteColorCards[]` (index = player index)
 - Player(s) with the **most of their own secret color** at round end: +1 pt
 - Ties are friendly — all tied players score

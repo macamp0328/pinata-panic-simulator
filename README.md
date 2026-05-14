@@ -27,8 +27,8 @@ Each round has three public goals and one secret goal per player:
 | **Favorite Color** | Player(s) with the most of their secret color | +1 |
 | **Licorice Penalty** | Any player holding licorice at round end | −1 |
 
-- Goal B and C colors are drawn fresh each round from a shuffled deck of the 4 non-licorice colors.
-- Favorite Color cards are secretly dealt each round (2 per color in the deck); two players may share the same color.
+- Goal B and C colors are drawn fresh each round from a shuffled deck of the active non-licorice colors. When only one non-licorice color is active, Goal B and Goal C will share it regardless of the `goalBCShareColor` setting.
+- Favorite Color cards are secretly dealt each round (2 per active non-licorice color, cycling if there are more players than cards). Multiple players may hold the same color.
 - The end-of-round summary panel shows enough information to fact-check every point awarded.
 - The game-over panel ranks players by total **points** (not candy), with candy as a tiebreaker.
 

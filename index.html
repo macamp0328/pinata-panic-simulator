@@ -605,7 +605,7 @@
     </div>
     <div class="ctrl-row">
       <span class="ctrl-label">Candy colors</span>
-      <input class="ctrl-input" type="number" id="cfg-numCandyColors" min="1" max="5" step="1">
+      <input class="ctrl-input" type="number" id="cfg-numCandyColors" min="2" max="5" step="1">
     </div>
     <div class="ctrl-row">
       <span class="ctrl-label">End of round</span>
@@ -802,6 +802,10 @@ function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function escHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function buildCandyPool() {
   const colors = getActiveColors(config);
   const pool = {};
@@ -825,7 +829,7 @@ function buildPlayers(count, existing) {
     roundCandy: 0,
     totalCandy: existing?.[i]?.totalCandy ?? 0,
     colorCounts: {},
-    points: existing?.[i]?.points ?? 0,
+    points: 0,
     roundPoints: 0,
   }));
 }
@@ -836,6 +840,7 @@ function initGame() {
   state.roundOver     = false;
   state.gameOver      = false;
   state.lastTurnResult = null;
+  state.roundScoreHistory = [];
   state.players = buildPlayers(config.numPlayers, state.players);
   initRound(true);
 }
@@ -1338,8 +1343,9 @@ function renderSummaryPanel() {
   // Winner banner — determined by total points
   const winnerWrap = document.getElementById('winner-banner-wrap');
   if (isGameOver) {
-    const maxPts = Math.max(...players.map(p => p.points));
-    const winners = players.filter(p => p.points === maxPts).map(p => p.name);
+    const sorted = [...players].sort((a, b) => (b.points - a.points) || (b.totalCandy - a.totalCandy));
+    const top = sorted[0];
+    const winners = sorted.filter(p => p.points === top.points && p.totalCandy === top.totalCandy).map(p => escHtml(p.name));
     winnerWrap.innerHTML = `<div class="winner-banner">🏆 ${winners.join(' & ')} wins!</div>`;
   } else {
     winnerWrap.innerHTML = '';
@@ -1370,18 +1376,18 @@ function renderSummaryPanel() {
   };
 
   const goalAMax = Math.max(...playerSnapshots.map(p => p.roundCandy));
-  const goalAWinners = playerSnapshots.filter(p => p.roundCandy === goalAMax).map(p => p.name);
+  const goalAWinners = playerSnapshots.filter(p => p.roundCandy === goalAMax).map(p => escHtml(p.name));
   goalsBody.appendChild(makeGoalRow('Goal A', null, 'Most candy', `${goalAWinners.join(', ')} (${goalAMax})`));
 
   if (goals.goalB) {
     const maxB = Math.max(...playerSnapshots.map(p => p.colorCounts[goals.goalB] ?? 0));
-    const wB   = maxB > 0 ? playerSnapshots.filter(p => (p.colorCounts[goals.goalB] ?? 0) === maxB).map(p => p.name) : [];
+    const wB   = maxB > 0 ? playerSnapshots.filter(p => (p.colorCounts[goals.goalB] ?? 0) === maxB).map(p => escHtml(p.name)) : [];
     goalsBody.appendChild(makeGoalRow('Goal B', goals.goalB, `Most ${goals.goalB}`,
       wB.length ? `${wB.join(', ')} (${maxB})` : 'Nobody scored'));
   }
 
   if (goals.goalC) {
-    const meeters = playerSnapshots.filter(p => (p.colorCounts[goals.goalC] ?? 0) >= goals.goalCThreshold).map(p => p.name);
+    const meeters = playerSnapshots.filter(p => (p.colorCounts[goals.goalC] ?? 0) >= goals.goalCThreshold).map(p => escHtml(p.name));
     goalsBody.appendChild(makeGoalRow('Goal C', goals.goalC, `≥${goals.goalCThreshold} ${goals.goalC}`,
       meeters.length ? meeters.join(', ') : 'Nobody scored'));
   }
@@ -1397,9 +1403,9 @@ function renderSummaryPanel() {
     const row = document.createElement('div');
     row.className = 'goal-result-row';
     row.innerHTML =
-      `<span class="goal-result-label">${snap.name}</span>` +
+      `<span class="goal-result-label">${escHtml(snap.name)}</span>` +
       `<span class="goal-result-swatch" style="background:${COLOR_HEX[favColor] ?? '#888'}"></span>` +
-      `<span style="font-size:11px;color:var(--text-muted);flex:1">${favColor} — ${count} held</span>` +
+      `<span style="font-size:11px;color:var(--text-muted);flex:1">${escHtml(favColor)} — ${count} held</span>` +
       (scored ? '<span class="goal-result-winner">+1 pt</span>' : '<span class="goal-result-detail">—</span>');
     favBody.appendChild(row);
   });
@@ -1418,7 +1424,7 @@ function renderSummaryPanel() {
       const row = document.createElement('div');
       row.className = 'goal-result-row';
       row.innerHTML =
-        `<span class="goal-result-label">${snap.name}</span>` +
+        `<span class="goal-result-label">${escHtml(snap.name)}</span>` +
         `<span class="goal-result-swatch" style="background:#2d2d2d"></span>` +
         `<span style="font-size:11px;color:var(--text-muted);flex:1">${snap.colorCounts['licorice']} licorice held</span>` +
         `<span class="score-neg">−1 pt</span>`;
@@ -1443,7 +1449,7 @@ function renderSummaryPanel() {
     const tr   = document.createElement('tr');
     if (rank === 0) tr.classList.add('rank-1');
     tr.innerHTML =
-      `<td>${p.name}</td><td>${snap.roundCandy}</td>` +
+      `<td>${escHtml(p.name)}</td><td>${snap.roundCandy}</td>` +
       `${fmt(s.goalA)}${fmt(s.goalB)}${fmt(s.goalC)}${fmt(s.favorite)}${fmt(s.licoricePenalty)}`.replace(/(<span[^>]*>.*?<\/span>)/g, '<td>$1</td>') +
       `<td class="pts-total">${s.total >= 0 ? '+' : ''}${s.total}</td>` +
       `<td class="pts-total">${p.points}</td>`;
@@ -1467,7 +1473,7 @@ function renderSummaryPanel() {
         }).join('');
         const tr = document.createElement('tr');
         if (rank === 0) tr.classList.add('rank-1');
-        tr.innerHTML = `<td>${p.name}</td>${cells}<td class="pts-total">${p.points}</td>`;
+        tr.innerHTML = `<td>${escHtml(p.name)}</td>${cells}<td class="pts-total">${p.points}</td>`;
         rbody.appendChild(tr);
       });
   } else {
@@ -1779,7 +1785,7 @@ function bindPending(id, key, transform) {
 bindPending('cfg-numPlayers',          'numPlayers',          v => { const n = parseInt(v); return (n >= 2 && n <= 6) ? n : null; });
 bindPending('cfg-totalRounds',         'totalRounds',         v => parseInt(v));
 bindPending('cfg-candyPerRound',       'candyPerRound',       v => parseInt(v));
-bindPending('cfg-numCandyColors',      'numCandyColors',      v => { const n = parseInt(v); return (n >= 1 && n <= 5) ? n : null; });
+bindPending('cfg-numCandyColors',      'numCandyColors',      v => { const n = parseInt(v); return (n >= 2 && n <= 5) ? n : null; });
 bindPending('cfg-minTurns',            'minTurns',            v => parseInt(v));
 bindPending('cfg-maxTurns',            'maxTurns',            v => parseInt(v));
 bindPending('cfg-dropChance',          'dropChance',          v => parseInt(v) / 100);
@@ -1816,7 +1822,7 @@ document.getElementById('btn-add-phase').addEventListener('click', () => {
 
 /* ── Control buttons ─────────────────────────────────────────── */
 document.getElementById('btn-restart-round').addEventListener('click', () => {
-  if (state.uiPhase === 'suspense') return;
+  if (state.uiPhase === 'suspense' || state.roundOver || state.gameOver) return;
   state.batterIndex = 0;
   initRound();
   document.getElementById('event-log').innerHTML = '';
