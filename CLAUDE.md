@@ -36,25 +36,64 @@ It is not a polished game. It is a playtesting instrument.
 
 ## Candy color system
 
-There are always exactly 5 colors in the master palette. `numCandyColors` (1–5) controls how many are active.
+There are always exactly 5 colors in the master palette. `numCandyColors` (2–5) controls how many are active. **Licorice is always the 5th color and is always included** regardless of `numCandyColors`. It cannot be a Favorite Color and is never used in Goal B/C decks.
 
 ```js
-const MASTER_COLORS = ['red', 'orange', 'green', 'blue', 'purple'];
-
 const COLOR_HEX = {
-  red:    '#ff3b3b',
-  orange: '#ff8c00',
-  green:  '#00d26a',
-  blue:   '#1a9fff',
-  purple: '#c050ff',
+  blue:     '#1a9fff',
+  green:    '#00d26a',
+  pink:     '#ff4db8',
+  yellow:   '#ffcb2d',
+  licorice: '#2d2d2d',
 };
 
 function getActiveColors(cfg) {
-  return MASTER_COLORS.slice(0, cfg.numCandyColors ?? 5);
+  const n = cfg.numCandyColors ?? 5;
+  const nonLicorice = ['blue', 'green', 'pink', 'yellow'];
+  return [...nonLicorice.slice(0, Math.max(0, n - 1)), 'licorice'];
 }
 ```
 
 Always use `getActiveColors(config)` — never read `config.candyColors` directly (it doesn't exist).
+
+## Candy pool composition (per round)
+
+Licorice is always computed first, then remaining candy is split equally among non-licorice colors:
+
+```js
+licoriceCount = Math.floor(candyPerRound / 9)   // ~5–6 at 50, ~3 at 25
+remaining     = candyPerRound − licoriceCount
+perNonLicorice = Math.floor(remaining / activeNonLicoriceColors)  // floor only, no redistribution
+```
+
+A few candies may be lost to rounding. This is intentional (fairness guarantee for non-licorice colors).
+
+## Scoring system
+
+Points are tallied at the end of each round via `scoreRound()` and applied via `applyRoundScoring()`.
+
+### Favorite Color cards (secret, per player)
+- `dealFavoriteCards()` builds a deck of 2× each active non-licorice color, shuffles, and deals one per player using `deck[i % deck.length]` — cycles if there are more players than cards (possible when few colors are active)
+- Stored in `state.favoriteColorCards[]` (index = player index)
+- Player(s) with the **most of their own secret color** at round end: +1 pt
+- Ties are friendly — all tied players score
+
+### Public Round Goals (3 per round)
+- `drawRoundGoals()` returns `{ goalB, goalC, goalCThreshold }`
+- **Goal A** (always active): player(s) with most total candy this round → +1
+- **Goal B**: shuffle active non-licorice colors, pick one; player(s) with most of that color → +1
+- **Goal C**: drawn from separate shuffle (or same as B if `config.goalBCShareColor` is true); falls back to goalB color when only one active non-licorice color exists; all players holding ≥ threshold of that color → +1
+- `goalCThreshold = Math.max(2, Math.floor(config.candyPerRound / 10))`
+
+### Licorice penalty
+- Any player holding ≥1 licorice at round end: −1 pt (flat, regardless of quantity)
+- Licorice is only accidentally collected: each piece rolls `Math.random() < config.licoricePickupChance`
+
+### Score objects
+```js
+{ goalA, goalB, goalC, favorite, licoricePenalty, total }
+// stored in state.roundScoreHistory[].scores[playerIndex]
+```
 
 ## Core data structures
 
@@ -80,6 +119,8 @@ const config = {
   finalBreakEndPct: 0.40,
   dropDelayMin: 0,
   dropDelayMax: 3,
+  licoricePickupChance: 0.05,  // probability each licorice piece is accidentally collected
+  goalBCShareColor: false,     // when true, Goal C color is forced to match Goal B
 };
 
 // State — runtime, never mutated directly by UI
@@ -88,9 +129,9 @@ const state = {
   currentTurn: 1,
   totalTurnsThisRound: null,     // rolled at round start
   batterIndex: 0,                // index into players array
-  candyPool: {},                 // { red: 10, orange: 10, ... }
+  candyPool: {},                 // { blue: 11, green: 11, pink: 11, yellow: 11, licorice: 5 }
   players: [
-    { name: 'Dizzy', roundCandy: 0, totalCandy: 0, colorCounts: {} },
+    { name: 'Dizzy', roundCandy: 0, totalCandy: 0, colorCounts: {}, points: 0, roundPoints: 0 },
     // ... names come from PLAYER_NAME_POOL, not 'Player N'
   ],
   roundOver: false,
@@ -98,6 +139,10 @@ const state = {
   uiPhase: 'idle',              // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
   turnHistory: [],              // [{ type: 'miss'|'drop'|'break' }, ...]
   lastTurnResult: null,         // { type, pieces, dist } — drives last-drop display
+  favoriteColorCards: [],       // index = player index, value = color string (never 'licorice')
+  roundGoals: { goalB: null, goalC: null, goalCThreshold: 0 },
+  droppedLicoriceCount: 0,      // licorice pieces that appeared in drop events this round
+  roundScoreHistory: [],        // [{ round, goals, favoriteCards, scores, playerSnapshots }]
 };
 ```
 
@@ -122,10 +167,10 @@ Players get random names from `PLAYER_NAME_POOL` (25 fun names) at game start vi
 
 The `<script>` block is divided into seven sections. **Do not mix concerns between sections.**
 
-1. **Config** — `MASTER_COLORS`, `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`, `BELLY_POSITIONS` (precomputed candy dot positions for the belly window)
+1. **Config** — `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`, `BELLY_POSITIONS` (precomputed candy dot positions for the belly window)
 2. **State** — runtime state object, never mutated directly by UI
 3. **Game logic** — pure functions, no DOM access
-4. **Render** — `renderAll()` reads state and syncs the entire DOM; all DOM writes happen here. `renderAll()` calls `renderPlayers()`, `renderCenterPanel()`, `renderControlPanel()`. `renderCenterPanel()` calls `renderTurnTracker()`, `renderCandyFill()`, `renderSummaryPanel()`.
+4. **Render** — `renderAll()` reads state and syncs the entire DOM; all DOM writes happen here. `renderAll()` calls `renderPlayers()`, `renderCenterPanel()`, `renderControlPanel()`. `renderCenterPanel()` calls `renderTurnTracker()`, `renderCandyFill()`, `renderGoals()`, `renderSummaryPanel()`.
 5. **Audio** — Web Audio API helpers (`tone()`, `soundSwing()`, `soundMiss()`, `soundCandyPop()`, `soundBreak()`, `soundRoundEnd()`, `soundGameOver()`). Lazy-initializes `AudioContext` on first use.
 6. **Events** — `addEventListener` calls that invoke logic, then call `renderAll()`
 7. **Init** — `initGame(); initCandyFill(); renderAll();` (`initCandyFill` populates the SVG `#candy-fill` group with pre-positioned circles once; `renderCandyFill` then controls their opacity each render)

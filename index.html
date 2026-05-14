@@ -273,6 +273,90 @@
     #btn-play-again { background: var(--surface3); color: var(--text); border: 1px solid var(--border) !important; }
     #btn-play-again:hover { background: #d0d8ee; }
 
+    /* ── Goals strip ───────────────────────────────────────────────── */
+    #goals-strip {
+      display: flex; gap: 8px; width: 100%; max-width: 440px; justify-content: center;
+    }
+    .goal-card {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 8px 10px; text-align: center; min-width: 0;
+    }
+    .goal-card-label {
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-muted); margin-bottom: 4px;
+    }
+    .goal-card-swatch {
+      width: 22px; height: 22px; border-radius: 50%; margin: 0 auto 4px;
+      border: 2px solid rgba(0,0,0,.12);
+    }
+    .goal-card-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
+    .goal-card-reward { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .goal-card.goal-a .goal-card-label { color: var(--accent2); }
+
+    /* ── Licorice counter ──────────────────────────────────────────── */
+    .licorice-counter {
+      font-size: 11px; color: var(--text-muted); text-align: center;
+      display: flex; align-items: center; gap: 5px; justify-content: center;
+    }
+    .licorice-counter .lic-swatch {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      background: #2d2d2d; border: 1px solid rgba(0,0,0,.2); flex-shrink: 0;
+    }
+
+    /* ── Favorite color badge in player card ───────────────────────── */
+    .fav-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; color: var(--text-muted); margin-top: 5px;
+    }
+    .fav-badge .fav-swatch {
+      width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15);
+    }
+    .score-pts {
+      display: flex; gap: 14px; margin-top: 4px; font-size: 12px; color: var(--text-muted);
+    }
+    .score-pts span strong { color: var(--accent2); font-size: 14px; }
+
+    /* ── Control panel checkbox ────────────────────────────────────── */
+    .ctrl-checkbox { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; cursor: pointer; }
+    .ctrl-checkbox input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+    .ctrl-checkbox span { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Summary scoring sections ──────────────────────────────────── */
+    .scoring-section { margin-bottom: 14px; }
+    .scoring-section h4 {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-muted); margin-bottom: 6px; padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .goal-result-row {
+      display: flex; align-items: center; gap: 8px; font-size: 12px;
+      padding: 3px 0; border-bottom: 1px solid var(--bg);
+    }
+    .goal-result-row:last-child { border-bottom: none; }
+    .goal-result-label { font-weight: 600; color: var(--text-muted); min-width: 60px; font-size: 11px; }
+    .goal-result-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,.1); }
+    .goal-result-winner { color: var(--accent2); font-weight: 600; }
+    .goal-result-detail { color: var(--text-muted); font-size: 11px; }
+    .fact-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 4px; }
+    .fact-table th {
+      text-align: center; font-size: 9px; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--text-muted); padding: 3px 4px; border-bottom: 1px solid var(--border);
+    }
+    .fact-table th:first-child, .fact-table td:first-child { text-align: left; }
+    .fact-table td { padding: 5px 4px; border-bottom: 1px solid var(--bg); text-align: center; }
+    .fact-table tr.rank-1 td { color: var(--accent2); font-weight: 700; }
+    .fact-table .pts-total { font-weight: 700; color: var(--text); }
+    .fact-table .score-pos { color: #2a9d2a; font-weight: 600; }
+    .fact-table .score-neg { color: var(--accent); font-weight: 600; }
+    .rounds-grid { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+    .rounds-grid th {
+      font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted);
+      padding: 3px 4px; border-bottom: 1px solid var(--border); text-align: center;
+    }
+    .rounds-grid th:first-child { text-align: left; }
+    .rounds-grid td { padding: 5px 4px; border-bottom: 1px solid var(--bg); text-align: center; }
+    .rounds-grid tr.rank-1 td { color: var(--accent2); font-weight: 700; }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -438,6 +522,9 @@
   <div id="break-banner">⚡ PIÑATA BROKEN ⚡</div>
 
   <div class="candy-bar-label" id="candy-bar-label">Candy: — / —</div>
+  <div class="licorice-counter" id="licorice-counter" style="display:none">
+    <span class="lic-swatch"></span><span id="licorice-counter-text">0 licorice dropped</span>
+  </div>
 
   <div class="turn-tracker" id="turn-tracker"></div>
 
@@ -447,14 +534,44 @@
   </div>
   </div><!-- end #pinata-controls -->
 
+  <div id="goals-strip"></div>
+
   <div id="summary-panel">
     <div class="summary-title" id="summary-title">Round Complete</div>
     <div class="summary-subtitle" id="summary-subtitle"></div>
     <div id="winner-banner-wrap"></div>
-    <table class="summary-table">
-      <thead><tr><th>#</th><th>Player</th><th>This Round</th><th>Total</th></tr></thead>
-      <tbody id="summary-tbody"></tbody>
-    </table>
+
+    <div class="scoring-section" id="summary-goals-recap">
+      <h4>Round Goals</h4>
+      <div id="summary-goals-body"></div>
+    </div>
+
+    <div class="scoring-section" id="summary-fav-recap">
+      <h4>Favorite Color</h4>
+      <div id="summary-fav-body"></div>
+    </div>
+
+    <div class="scoring-section" id="summary-licorice-recap">
+      <h4>Licorice Penalty</h4>
+      <div id="summary-licorice-body"></div>
+    </div>
+
+    <div class="scoring-section">
+      <h4>Scoring Breakdown</h4>
+      <table class="fact-table">
+        <thead id="summary-fact-head"></thead>
+        <tbody id="summary-fact-body"></tbody>
+      </table>
+    </div>
+
+    <div id="summary-rounds-wrap" class="scoring-section" style="display:none">
+      <h4>Points by Round</h4>
+      <table class="rounds-grid">
+        <thead id="summary-rounds-head"></thead>
+        <tbody id="summary-rounds-body"></tbody>
+      </table>
+    </div>
+
     <div class="summary-actions">
       <button id="btn-next-round">Start Round 2</button>
       <button id="btn-play-again" style="display:none">Play Again</button>
@@ -488,7 +605,7 @@
     </div>
     <div class="ctrl-row">
       <span class="ctrl-label">Candy colors</span>
-      <input class="ctrl-input" type="number" id="cfg-numCandyColors" min="1" max="5" step="1">
+      <input class="ctrl-input" type="number" id="cfg-numCandyColors" min="2" max="5" step="1">
     </div>
     <div class="ctrl-row">
       <span class="ctrl-label">End of round</span>
@@ -542,6 +659,18 @@
   </div>
 
   <div class="ctrl-group">
+    <h3>Scoring</h3>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Licorice pickup chance (%)</span>
+      <input class="ctrl-input" type="number" id="cfg-licoricePickupChance" min="0" max="100" step="1">
+    </div>
+    <label class="ctrl-checkbox">
+      <input type="checkbox" id="cfg-goalBCShareColor">
+      <span>Goals B &amp; C share color</span>
+    </label>
+  </div>
+
+  <div class="ctrl-group">
     <h3>Drop Timing (sec)</h3>
     <div class="ctrl-row">
       <span class="ctrl-label">Delay min</span>
@@ -567,8 +696,6 @@
    1. CONFIG
    ═══════════════════════════════════════════════════════════════ */
 
-const MASTER_COLORS = ['red', 'orange', 'green', 'blue', 'purple'];
-
 const PLAYER_NAME_POOL = [
   'Luna', 'Blaze', 'Mochi', 'Sparky', 'Pepper',
   'Waffles', 'Cosmo', 'Zigzag', 'Pixel', 'Bingo',
@@ -583,11 +710,11 @@ function pickRandomNames(count) {
 }
 
 const COLOR_HEX = {
-  red:    '#ff3b3b',
-  orange: '#ff8c00',
-  green:  '#00d26a',
-  blue:   '#1a9fff',
-  purple: '#c050ff',
+  blue:     '#1a9fff',
+  green:    '#00d26a',
+  pink:     '#ff4db8',
+  yellow:   '#ffcb2d',
+  licorice: '#2d2d2d',
 };
 
 const DEFAULTS = {
@@ -609,6 +736,8 @@ const DEFAULTS = {
   finalBreakEndPct: 0.40,
   dropDelayMin: 0,
   dropDelayMax: 3,
+  licoricePickupChance: 0.05,
+  goalBCShareColor: false,
 };
 
 // config = active values used by the running game
@@ -617,7 +746,9 @@ const config        = structuredClone(DEFAULTS);
 const pendingConfig = structuredClone(DEFAULTS);
 
 function getActiveColors(cfg) {
-  return MASTER_COLORS.slice(0, cfg.numCandyColors ?? 5);
+  const n = cfg.numCandyColors ?? 5;
+  const nonLicorice = ['blue', 'green', 'pink', 'yellow'];
+  return [...nonLicorice.slice(0, Math.max(0, n - 1)), 'licorice'];
 }
 
 // Pre-computed candy dot positions inside the belly window (cx=84,cy=130,rx=38,ry=24).
@@ -657,6 +788,10 @@ const state = {
   uiPhase: 'idle',      // 'idle' | 'suspense' | 'result' | 'break' | 'summary'
   turnHistory: [],
   lastTurnResult: null,
+  favoriteColorCards: [],   // index = player index, value = color string
+  roundGoals: { goalB: null, goalC: null, goalCThreshold: 0 },
+  droppedLicoriceCount: 0,  // licorice pieces that fell in drop events this round
+  roundScoreHistory: [],    // [{round, goals, favoriteCards, scores, playerSnapshots}]
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -667,12 +802,19 @@ function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function escHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function buildCandyPool() {
-  const pool = {};
   const colors = getActiveColors(config);
-  const base = Math.floor(config.candyPerRound / colors.length);
-  let rem = config.candyPerRound % colors.length;
-  for (const c of colors) pool[c] = base + (rem-- > 0 ? 1 : 0);
+  const pool = {};
+  const licoriceCount = Math.floor(config.candyPerRound / 9);
+  pool['licorice'] = licoriceCount;
+  const remaining = config.candyPerRound - licoriceCount;
+  const nonLicorice = colors.filter(c => c !== 'licorice');
+  const perColor = nonLicorice.length > 0 ? Math.floor(remaining / nonLicorice.length) : 0;
+  for (const c of nonLicorice) pool[c] = perColor;
   return pool;
 }
 
@@ -685,8 +827,10 @@ function buildPlayers(count, existing) {
   return Array.from({ length: count }, (_, i) => ({
     name: existing?.[i]?.name ?? freshNames[i],
     roundCandy: 0,
-    totalCandy: existing?.[i]?.totalCandy ?? 0,
+    totalCandy: 0,
     colorCounts: {},
+    points: 0,
+    roundPoints: 0,
   }));
 }
 
@@ -696,6 +840,7 @@ function initGame() {
   state.roundOver     = false;
   state.gameOver      = false;
   state.lastTurnResult = null;
+  state.roundScoreHistory = [];
   state.players = buildPlayers(config.numPlayers, state.players);
   initRound(true);
 }
@@ -708,8 +853,11 @@ function initRound(freshGame = false) {
   state.uiPhase     = 'idle';
   state.lastTurnResult = null;
   state.turnHistory = [];
+  state.droppedLicoriceCount = 0;
+  state.favoriteColorCards = dealFavoriteCards();
+  state.roundGoals = drawRoundGoals();
   if (!freshGame) {
-    for (const p of state.players) { p.roundCandy = 0; p.colorCounts = {}; }
+    for (const p of state.players) { p.roundCandy = 0; p.roundPoints = 0; p.colorCounts = {}; }
   }
 }
 
@@ -749,11 +897,22 @@ function distributeCandy(pieces, batterIndex) {
   const dist = {};
   const eligible = state.players.map((_, i) => i).filter(i => i !== batterIndex);
   for (const color of pieces) {
-    const r = eligible[randInt(0, eligible.length - 1)];
-    dist[r] = (dist[r] ?? 0) + 1;
-    state.players[r].roundCandy++;
-    state.players[r].totalCandy++;
-    state.players[r].colorCounts[color] = (state.players[r].colorCounts[color] ?? 0) + 1;
+    if (color === 'licorice') {
+      state.droppedLicoriceCount++;
+      if (Math.random() < config.licoricePickupChance) {
+        const r = eligible[randInt(0, eligible.length - 1)];
+        dist[r] = (dist[r] ?? 0) + 1;
+        state.players[r].roundCandy++;
+        state.players[r].totalCandy++;
+        state.players[r].colorCounts['licorice'] = (state.players[r].colorCounts['licorice'] ?? 0) + 1;
+      }
+    } else {
+      const r = eligible[randInt(0, eligible.length - 1)];
+      dist[r] = (dist[r] ?? 0) + 1;
+      state.players[r].roundCandy++;
+      state.players[r].totalCandy++;
+      state.players[r].colorCounts[color] = (state.players[r].colorCounts[color] ?? 0) + 1;
+    }
   }
   return dist;
 }
@@ -770,6 +929,84 @@ function resolveEndOfRound() {
     result.dist   = distributeCandy(result.pieces, state.batterIndex);
   }
   return result;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function dealFavoriteCards() {
+  const nonLicorice = getActiveColors(config).filter(c => c !== 'licorice');
+  const deck = shuffle([...nonLicorice, ...nonLicorice]); // 2× each color
+  return state.players.map((_, i) => deck[i % deck.length]);
+}
+
+function drawRoundGoals() {
+  const nonLicorice = getActiveColors(config).filter(c => c !== 'licorice');
+  if (nonLicorice.length === 0) return { goalB: null, goalC: null, goalCThreshold: 0 };
+  const goalB = shuffle([...nonLicorice])[0];
+  let goalC;
+  if (config.goalBCShareColor) {
+    goalC = goalB;
+  } else {
+    const others = nonLicorice.filter(c => c !== goalB);
+    goalC = others.length > 0 ? shuffle(others)[0] : goalB;
+  }
+  const goalCThreshold = Math.max(2, Math.floor(config.candyPerRound / 10));
+  return { goalB, goalC, goalCThreshold };
+}
+
+function scoreRound() {
+  const players = state.players;
+  const scores = players.map(() => ({ goalA: 0, goalB: 0, goalC: 0, favorite: 0, licoricePenalty: 0, total: 0 }));
+
+  // Goal A: most total candy this round
+  const maxCandy = Math.max(...players.map(p => p.roundCandy));
+  players.forEach((p, i) => { if (p.roundCandy === maxCandy) scores[i].goalA = 1; });
+
+  // Goal B: most of the drawn color
+  const { goalB, goalC, goalCThreshold } = state.roundGoals;
+  if (goalB) {
+    const maxB = Math.max(...players.map(p => p.colorCounts[goalB] ?? 0));
+    if (maxB > 0) players.forEach((p, i) => { if ((p.colorCounts[goalB] ?? 0) === maxB) scores[i].goalB = 1; });
+  }
+
+  // Goal C: at least N of the drawn color
+  if (goalC) {
+    players.forEach((p, i) => { if ((p.colorCounts[goalC] ?? 0) >= goalCThreshold) scores[i].goalC = 1; });
+  }
+
+  // Favorite color: most of each player's personal secret color
+  const favCounts = players.map((p, i) => p.colorCounts[state.favoriteColorCards[i]] ?? 0);
+  const maxFav = Math.max(...favCounts);
+  if (maxFav > 0) players.forEach((_, i) => { if (favCounts[i] === maxFav) scores[i].favorite = 1; });
+
+  // Licorice penalty: any licorice held → −1
+  players.forEach((p, i) => { if ((p.colorCounts['licorice'] ?? 0) > 0) scores[i].licoricePenalty = -1; });
+
+  scores.forEach(s => { s.total = s.goalA + s.goalB + s.goalC + s.favorite + s.licoricePenalty; });
+  return scores;
+}
+
+function applyRoundScoring() {
+  const roundScores = scoreRound();
+  roundScores.forEach((s, i) => {
+    state.players[i].roundPoints = s.total;
+    state.players[i].points += s.total;
+  });
+  state.roundScoreHistory.push({
+    round: state.currentRound,
+    goals: { ...state.roundGoals },
+    favoriteCards: [...state.favoriteColorCards],
+    scores: roundScores,
+    playerSnapshots: state.players.map(p => ({
+      name: p.name, roundCandy: p.roundCandy, colorCounts: { ...p.colorCounts },
+    })),
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -800,8 +1037,13 @@ function renderPlayers() {
 
     const scores = document.createElement('div');
     scores.className = 'player-scores';
-    scores.innerHTML = `<span>Round: <strong>${p.roundCandy}</strong></span><span>Total: <strong>${p.totalCandy}</strong></span>`;
+    scores.innerHTML = `<span>Candy: <strong>${p.roundCandy}</strong></span><span>Total candy: <strong>${p.totalCandy}</strong></span>`;
     card.appendChild(scores);
+
+    const pts = document.createElement('div');
+    pts.className = 'score-pts';
+    pts.innerHTML = `<span>Pts this round: <strong>${p.roundPoints ?? 0}</strong></span><span>Total pts: <strong>${p.points ?? 0}</strong></span>`;
+    card.appendChild(pts);
 
     const colors = document.createElement('div');
     colors.className = 'player-colors';
@@ -819,8 +1061,51 @@ function renderPlayers() {
       }
     }
     card.appendChild(colors);
+
+    const favColor = state.favoriteColorCards[i];
+    if (favColor) {
+      const fav = document.createElement('div');
+      fav.className = 'fav-badge';
+      fav.innerHTML = `<span class="fav-swatch" style="background:${COLOR_HEX[favColor] ?? '#888'}"></span>Fav: ${favColor}`;
+      card.appendChild(fav);
+    }
+
     list.appendChild(card);
   });
+}
+
+function renderGoals() {
+  const strip = document.getElementById('goals-strip');
+  strip.innerHTML = '';
+  const { goalB, goalC, goalCThreshold } = state.roundGoals;
+
+  const makeCard = (label, colorKey, name, reward) => {
+    const card = document.createElement('div');
+    card.className = 'goal-card' + (label === 'GOAL A' ? ' goal-a' : '');
+    const lbl = document.createElement('div');
+    lbl.className = 'goal-card-label';
+    lbl.textContent = label;
+    card.appendChild(lbl);
+    if (colorKey) {
+      const sw = document.createElement('div');
+      sw.className = 'goal-card-swatch';
+      sw.style.background = COLOR_HEX[colorKey] ?? '#888';
+      card.appendChild(sw);
+    }
+    const nm = document.createElement('div');
+    nm.className = 'goal-card-name';
+    nm.textContent = name;
+    card.appendChild(nm);
+    const rw = document.createElement('div');
+    rw.className = 'goal-card-reward';
+    rw.textContent = reward;
+    card.appendChild(rw);
+    return card;
+  };
+
+  strip.appendChild(makeCard('GOAL A', null, 'Most Candy', '+1 pt'));
+  strip.appendChild(makeCard('GOAL B', goalB, goalB ? `Most ${goalB}` : '—', '+1 pt'));
+  strip.appendChild(makeCard('GOAL C', goalC, goalC ? `≥${goalCThreshold} ${goalC}` : '—', '+1 pt'));
 }
 
 function initCandyFill() {
@@ -889,6 +1174,16 @@ function renderCenterPanel() {
   const remaining = totalCandyInPool(state.candyPool);
   document.getElementById('candy-bar-label').textContent = `${remaining} / ${config.candyPerRound} candy`;
   renderCandyFill();
+
+  // Licorice counter
+  const licEl = document.getElementById('licorice-counter');
+  const licCount = state.droppedLicoriceCount;
+  licEl.style.display = licCount > 0 ? 'flex' : 'none';
+  document.getElementById('licorice-counter-text').textContent =
+    `${licCount} licorice dropped this round`;
+
+  // Goals strip
+  renderGoals();
 
   // Last drop display
   const lastDrop = document.getElementById('last-drop');
@@ -972,11 +1267,14 @@ function renderControlPanel() {
     'cfg-finalBreakEndPct':    Math.round(pendingConfig.finalBreakEndPct * 100),
     'cfg-dropDelayMin':        pendingConfig.dropDelayMin,
     'cfg-dropDelayMax':        pendingConfig.dropDelayMax,
+    'cfg-licoricePickupChance': Math.round(pendingConfig.licoricePickupChance * 100),
   };
   for (const [id, val] of Object.entries(map)) {
     const el = document.getElementById(id);
     if (el && document.activeElement !== el) el.value = val;
   }
+  const cbGoalBC = document.getElementById('cfg-goalBCShareColor');
+  if (cbGoalBC && document.activeElement !== cbGoalBC) cbGoalBC.checked = pendingConfig.goalBCShareColor;
 
   renderPhaseList();
 
@@ -1032,6 +1330,9 @@ function renderSummaryPanel() {
   if (!inSummary) return;
 
   const isGameOver = state.gameOver;
+  const roundData  = state.roundScoreHistory.at(-1);
+  const players    = state.players;
+
   document.getElementById('summary-title').textContent =
     isGameOver ? '🎉 Game Over!' : `Round ${state.currentRound} Complete`;
   document.getElementById('summary-subtitle').textContent =
@@ -1039,31 +1340,149 @@ function renderSummaryPanel() {
       ? `Final results after ${config.totalRounds} rounds`
       : `After ${state.totalTurnsThisRound} turns`;
 
+  // Winner banner — determined by total points
   const winnerWrap = document.getElementById('winner-banner-wrap');
   if (isGameOver) {
-    const max = Math.max(...state.players.map(p => p.totalCandy));
-    const winners = state.players.filter(p => p.totalCandy === max).map(p => p.name);
+    const sorted = [...players].sort((a, b) => (b.points - a.points) || (b.totalCandy - a.totalCandy));
+    const top = sorted[0];
+    const winners = sorted.filter(p => p.points === top.points && p.totalCandy === top.totalCandy).map(p => escHtml(p.name));
     winnerWrap.innerHTML = `<div class="winner-banner">🏆 ${winners.join(' & ')} wins!</div>`;
   } else {
     winnerWrap.innerHTML = '';
   }
 
-  const sorted = [...state.players].sort((a, b) =>
-    (b.roundCandy - a.roundCandy) || (b.totalCandy - a.totalCandy));
-  const tbody = document.getElementById('summary-tbody');
-  tbody.innerHTML = '';
-  sorted.forEach((p, rank) => {
-    const tr = document.createElement('tr');
-    if (rank === 0) tr.classList.add('rank-1');
-    tr.innerHTML = `<td>${rank + 1}</td><td>${p.name}</td><td>${p.roundCandy}</td><td>${p.totalCandy}</td>`;
-    tbody.appendChild(tr);
+  if (!roundData) {
+    document.getElementById('btn-next-round').style.display = isGameOver ? 'none' : '';
+    document.getElementById('btn-play-again').style.display = isGameOver ? '' : 'none';
+    if (!isGameOver) document.getElementById('btn-next-round').textContent = `Start Round ${state.currentRound + 1}`;
+    return;
+  }
+
+  const { goals, favoriteCards, scores, playerSnapshots } = roundData;
+
+  // ── Goals recap ────────────────────────────────────────────────────
+  const goalsBody = document.getElementById('summary-goals-body');
+  goalsBody.innerHTML = '';
+
+  const makeGoalRow = (label, colorKey, desc, winnerText) => {
+    const row = document.createElement('div');
+    row.className = 'goal-result-row';
+    row.innerHTML =
+      `<span class="goal-result-label">${label}</span>` +
+      (colorKey ? `<span class="goal-result-swatch" style="background:${COLOR_HEX[colorKey] ?? '#888'}"></span>` : '<span style="display:inline-block;width:12px"></span>') +
+      `<span style="font-size:11px;color:var(--text-muted);flex:1">${desc}</span>` +
+      `<span class="goal-result-winner">${winnerText}</span>`;
+    return row;
+  };
+
+  const goalAMax = Math.max(...playerSnapshots.map(p => p.roundCandy));
+  const goalAWinners = playerSnapshots.filter(p => p.roundCandy === goalAMax).map(p => escHtml(p.name));
+  goalsBody.appendChild(makeGoalRow('Goal A', null, 'Most candy', `${goalAWinners.join(', ')} (${goalAMax})`));
+
+  if (goals.goalB) {
+    const maxB = Math.max(...playerSnapshots.map(p => p.colorCounts[goals.goalB] ?? 0));
+    const wB   = maxB > 0 ? playerSnapshots.filter(p => (p.colorCounts[goals.goalB] ?? 0) === maxB).map(p => escHtml(p.name)) : [];
+    goalsBody.appendChild(makeGoalRow('Goal B', goals.goalB, `Most ${goals.goalB}`,
+      wB.length ? `${wB.join(', ')} (${maxB})` : 'Nobody scored'));
+  }
+
+  if (goals.goalC) {
+    const meeters = playerSnapshots.filter(p => (p.colorCounts[goals.goalC] ?? 0) >= goals.goalCThreshold).map(p => escHtml(p.name));
+    goalsBody.appendChild(makeGoalRow('Goal C', goals.goalC, `≥${goals.goalCThreshold} ${goals.goalC}`,
+      meeters.length ? meeters.join(', ') : 'Nobody scored'));
+  }
+
+  // ── Favorite color recap ───────────────────────────────────────────
+  const favBody = document.getElementById('summary-fav-body');
+  favBody.innerHTML = '';
+  const maxFavCount = Math.max(...playerSnapshots.map((snap, i) => snap.colorCounts[favoriteCards[i]] ?? 0));
+  playerSnapshots.forEach((snap, i) => {
+    const favColor = favoriteCards[i];
+    const count    = snap.colorCounts[favColor] ?? 0;
+    const scored   = count === maxFavCount && maxFavCount > 0;
+    const row = document.createElement('div');
+    row.className = 'goal-result-row';
+    row.innerHTML =
+      `<span class="goal-result-label">${escHtml(snap.name)}</span>` +
+      `<span class="goal-result-swatch" style="background:${COLOR_HEX[favColor] ?? '#888'}"></span>` +
+      `<span style="font-size:11px;color:var(--text-muted);flex:1">${escHtml(favColor)} — ${count} held</span>` +
+      (scored ? '<span class="goal-result-winner">+1 pt</span>' : '<span class="goal-result-detail">—</span>');
+    favBody.appendChild(row);
   });
+
+  // ── Licorice recap ─────────────────────────────────────────────────
+  const licBody = document.getElementById('summary-licorice-body');
+  licBody.innerHTML = '';
+  const licHolders = playerSnapshots.filter(p => (p.colorCounts['licorice'] ?? 0) > 0);
+  if (licHolders.length === 0) {
+    const none = document.createElement('div');
+    none.style.cssText = 'font-size:12px;color:var(--text-muted);padding:3px 0';
+    none.textContent = 'Nobody picked up licorice — no penalty.';
+    licBody.appendChild(none);
+  } else {
+    licHolders.forEach(snap => {
+      const row = document.createElement('div');
+      row.className = 'goal-result-row';
+      row.innerHTML =
+        `<span class="goal-result-label">${escHtml(snap.name)}</span>` +
+        `<span class="goal-result-swatch" style="background:#2d2d2d"></span>` +
+        `<span style="font-size:11px;color:var(--text-muted);flex:1">${snap.colorCounts['licorice']} licorice held</span>` +
+        `<span class="score-neg">−1 pt</span>`;
+      licBody.appendChild(row);
+    });
+  }
+
+  // ── Scoring fact-check table ────────────────────────────────────────
+  document.getElementById('summary-fact-head').innerHTML =
+    '<tr><th>Player</th><th>Candy</th><th>A</th><th>B</th><th>C</th><th>Fav</th><th>🍬</th><th>Pts</th><th>Total</th></tr>';
+
+  const fmt = n => n > 0 ? `<span class="score-pos">+${n}</span>` : n < 0 ? `<span class="score-neg">${n}</span>` : '<span style="color:var(--text-muted)">—</span>';
+
+  const sortedPlayers = players.map((p, origIdx) => ({ p, origIdx }))
+    .sort((a, b) => (b.p.points - a.p.points) || (b.p.totalCandy - a.p.totalCandy));
+
+  const factBody = document.getElementById('summary-fact-body');
+  factBody.innerHTML = '';
+  sortedPlayers.forEach(({ p, origIdx }, rank) => {
+    const s    = scores[origIdx];
+    const snap = playerSnapshots[origIdx];
+    const tr   = document.createElement('tr');
+    if (rank === 0) tr.classList.add('rank-1');
+    tr.innerHTML =
+      `<td>${escHtml(p.name)}</td><td>${snap.roundCandy}</td>` +
+      `${fmt(s.goalA)}${fmt(s.goalB)}${fmt(s.goalC)}${fmt(s.favorite)}${fmt(s.licoricePenalty)}`.replace(/(<span[^>]*>.*?<\/span>)/g, '<td>$1</td>') +
+      `<td class="pts-total">${s.total >= 0 ? '+' : ''}${s.total}</td>` +
+      `<td class="pts-total">${p.points}</td>`;
+    factBody.appendChild(tr);
+  });
+
+  // ── Per-round points grid (game over only) ──────────────────────────
+  const roundsWrap = document.getElementById('summary-rounds-wrap');
+  if (isGameOver && state.roundScoreHistory.length > 0) {
+    roundsWrap.style.display = '';
+    const cols = state.roundScoreHistory.map((_, i) => `<th>R${i + 1}</th>`).join('');
+    document.getElementById('summary-rounds-head').innerHTML = `<tr><th>Player</th>${cols}<th>Total</th></tr>`;
+    const rbody = document.getElementById('summary-rounds-body');
+    rbody.innerHTML = '';
+    [...players].sort((a, b) => (b.points - a.points) || (b.totalCandy - a.totalCandy))
+      .forEach((p, rank) => {
+        const origIdx = players.indexOf(p);
+        const cells = state.roundScoreHistory.map(rd => {
+          const s = rd.scores[origIdx];
+          return `<td>${s ? (s.total >= 0 ? '+' + s.total : s.total) : '—'}</td>`;
+        }).join('');
+        const tr = document.createElement('tr');
+        if (rank === 0) tr.classList.add('rank-1');
+        tr.innerHTML = `<td>${escHtml(p.name)}</td>${cells}<td class="pts-total">${p.points}</td>`;
+        rbody.appendChild(tr);
+      });
+  } else {
+    roundsWrap.style.display = 'none';
+  }
 
   document.getElementById('btn-next-round').style.display = isGameOver ? 'none' : '';
   document.getElementById('btn-play-again').style.display = isGameOver ? '' : 'none';
-  if (!isGameOver) {
-    document.getElementById('btn-next-round').textContent = `Start Round ${state.currentRound + 1}`;
-  }
+  if (!isGameOver) document.getElementById('btn-next-round').textContent = `Start Round ${state.currentRound + 1}`;
 }
 
 /* ── Event log ─────────────────────────────────────────────────── */
@@ -1255,6 +1674,7 @@ document.getElementById('btn-activate').addEventListener('click', () => {
       triggerCandyBurst(pieces.length);
       soundBreak();
       pieces.forEach((_, i) => soundCandyPop(i));
+      applyRoundScoring();
       state.roundOver = true;
       if (state.currentRound >= config.totalRounds) state.gameOver = true;
       renderAll();
@@ -1308,6 +1728,7 @@ function finishTurn() {
 
   if (turn >= state.totalTurnsThisRound) {
     const endResult = resolveEndOfRound();
+    applyRoundScoring();
     state.roundOver = true;
     if (state.currentRound >= config.totalRounds) state.gameOver = true;
 
@@ -1364,7 +1785,7 @@ function bindPending(id, key, transform) {
 bindPending('cfg-numPlayers',          'numPlayers',          v => { const n = parseInt(v); return (n >= 2 && n <= 6) ? n : null; });
 bindPending('cfg-totalRounds',         'totalRounds',         v => parseInt(v));
 bindPending('cfg-candyPerRound',       'candyPerRound',       v => parseInt(v));
-bindPending('cfg-numCandyColors',      'numCandyColors',      v => { const n = parseInt(v); return (n >= 1 && n <= 5) ? n : null; });
+bindPending('cfg-numCandyColors',      'numCandyColors',      v => { const n = parseInt(v); return (n >= 2 && n <= 5) ? n : null; });
 bindPending('cfg-minTurns',            'minTurns',            v => parseInt(v));
 bindPending('cfg-maxTurns',            'maxTurns',            v => parseInt(v));
 bindPending('cfg-dropChance',          'dropChance',          v => parseInt(v) / 100);
@@ -1376,6 +1797,13 @@ bindPending('cfg-dropDelayMax',        'dropDelayMax',        v => parseFloat(v)
 
 document.getElementById('cfg-endOfRoundBehavior').addEventListener('change', e => {
   pendingConfig.endOfRoundBehavior = e.target.value;
+  renderAll();
+});
+
+bindPending('cfg-licoricePickupChance', 'licoricePickupChance', v => parseInt(v) / 100);
+
+document.getElementById('cfg-goalBCShareColor').addEventListener('change', e => {
+  pendingConfig.goalBCShareColor = e.target.checked;
   renderAll();
 });
 
@@ -1394,7 +1822,7 @@ document.getElementById('btn-add-phase').addEventListener('click', () => {
 
 /* ── Control buttons ─────────────────────────────────────────── */
 document.getElementById('btn-restart-round').addEventListener('click', () => {
-  if (state.uiPhase === 'suspense') return;
+  if (state.uiPhase === 'suspense' || state.roundOver || state.gameOver) return;
   state.batterIndex = 0;
   initRound();
   document.getElementById('event-log').innerHTML = '';
