@@ -39,8 +39,6 @@ It is not a polished game. It is a playtesting instrument.
 There are always exactly 5 colors in the master palette. `numCandyColors` (1–5) controls how many are active. **Licorice is always the 5th color and is always included** regardless of `numCandyColors`. It cannot be a Favorite Color and is never used in Goal B/C decks.
 
 ```js
-const MASTER_COLORS = ['blue', 'green', 'pink', 'yellow', 'licorice'];
-
 const COLOR_HEX = {
   blue:     '#1a9fff',
   green:    '#00d26a',
@@ -169,7 +167,7 @@ Players get random names from `PLAYER_NAME_POOL` (25 fun names) at game start vi
 
 The `<script>` block is divided into seven sections. **Do not mix concerns between sections.**
 
-1. **Config** — `MASTER_COLORS`, `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`, `BELLY_POSITIONS` (precomputed candy dot positions for the belly window)
+1. **Config** — `COLOR_HEX`, `PLAYER_NAME_POOL`, `DEFAULTS`, `config`, `pendingConfig`, `BELLY_POSITIONS` (precomputed candy dot positions for the belly window)
 2. **State** — runtime state object, never mutated directly by UI
 3. **Game logic** — pure functions, no DOM access
 4. **Render** — `renderAll()` reads state and syncs the entire DOM; all DOM writes happen here. `renderAll()` calls `renderPlayers()`, `renderCenterPanel()`, `renderControlPanel()`. `renderCenterPanel()` calls `renderTurnTracker()`, `renderCandyFill()`, `renderGoals()`, `renderSummaryPanel()`.
