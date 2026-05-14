@@ -13,7 +13,24 @@ Each session simulates a full multi-round game of Piñata Panic:
 - Players take turns as the **batter** (the one holding the piñata). The batter does not collect candy.
 - Each turn, a drop roll determines whether candy falls. If it does, the number of pieces is determined by the current **turn phase**, and each piece is independently assigned to a random non-batter player.
 - Starting at a configurable turn, there is an escalating **final break** chance each turn. If it triggers, all remaining candy releases at once and the round ends immediately.
-- At the end of each round, a summary shows per-player and cumulative scores.
+- At the end of each round, points are scored and a detailed summary shows the breakdown for every goal.
+
+### Scoring system
+
+Each round has three public goals and one secret goal per player:
+
+| Goal | Condition | Points |
+|---|---|---|
+| **Goal A** — Most Candy | Player(s) with the most candy this round | +1 |
+| **Goal B** — Most [Color] | Player(s) with the most of the drawn color | +1 |
+| **Goal C** — At Least N [Color] | All players holding ≥ N of the drawn color | +1 |
+| **Favorite Color** | Player(s) with the most of their secret color | +1 |
+| **Licorice Penalty** | Any player holding licorice at round end | −1 |
+
+- Goal B and C colors are drawn fresh each round from a shuffled deck of the 4 non-licorice colors.
+- Favorite Color cards are secretly dealt each round (2 per color in the deck); two players may share the same color.
+- The end-of-round summary panel shows enough information to fact-check every point awarded.
+- The game-over panel ranks players by total **points** (not candy), with candy as a tiebreaker.
 
 The center piñata graphic is a unicorn that reacts to each event: it shakes during the suspense delay, opens its hatch on a candy drop, and flashes on a final break. Dropped candy pieces appear as colored circles below the piñata after each turn.
 
@@ -33,13 +50,13 @@ All tunable variables are in the right-side panel. **None of your changes take e
 How many players are in the game. Each player gets a card on the left showing their candy totals. You can click any player's name to rename them.
 
 **Total rounds** *(default: 3)*
-How many rounds make up a full game. Scores carry over between rounds; the player with the most candy at the end wins.
+How many rounds make up a full game. Points carry over between rounds; the player with the most points at the end wins (candy is used as a tiebreaker).
 
 **Candy per round** *(default: 50)*
 How many pieces of candy the piñata holds at the start of each round. This resets every round regardless of how many pieces were left over.
 
 **Candy colors** *(default: 5, range: 1–5)*
-How many candy colors are in the mix. Colors are always drawn from the same ordered list — red, orange, green, blue, purple — so setting this to 3 means only red, orange, and green are used. Candy is split evenly across the active colors.
+How many candy colors are in the mix. Colors are always drawn from the same ordered list — blue, green, pink, yellow — plus **licorice is always included** as the 5th color regardless of this setting. Setting this to 3 gives blue, green, and licorice. Licorice candy uses a special pickup mechanic (see Scoring section).
 
 **End of round** *(default: release)*
 What happens to candy still inside the piñata when all turns run out without a final break:
@@ -94,6 +111,16 @@ The probability climbs smoothly between these two values across the eligible tur
 
 ---
 
+### Scoring
+
+**Licorice pickup chance** *(default: 5%)*
+When a licorice piece falls in a drop event, each piece independently rolls against this probability. If the roll passes, the piece is accidentally collected by a random non-batter player and goes into their score (and triggers the −1 licorice penalty at round end). If the roll fails, the piece disappears — it is not held by anyone. The licorice drop counter in the center panel tracks how many licorice pieces have appeared in drops this round.
+
+**Goals B & C share color** *(default: off)*
+When enabled, Goal C is forced to use the same color as Goal B — both goals reference the same color. When disabled (default), Goal C always draws a different color than Goal B.
+
+---
+
 ### Drop Timing
 
 **Delay min / Delay max** *(default: 0 sec / 3 sec)*
@@ -111,7 +138,9 @@ Controls the suspense window between pressing ACTIVATE and seeing the result. Ea
 
 ## Candy colors
 
-The simulator uses 5 candy colors: red, orange, green, blue, and purple. The **Candy colors** control lets you use 1–5 of them (always taken from the front of that list). Color counts per player are tracked for future character-card scoring.
+The simulator uses 5 candy colors: blue, green, pink, yellow, and licorice (black). The **Candy colors** control lets you use 1–5 of them — licorice is always included, and the remaining active colors are drawn from the front of the non-licorice list. Color counts per player are tracked and used for all goal scoring.
+
+Licorice candy (`#2d2d2d`) behaves differently from other colors: it is not freely distributed when it falls. Instead, each piece independently rolls against the **Licorice pickup chance** to determine if a player accidentally picks it up. Uncollected licorice simply disappears.
 
 ## Final break mechanics
 
