@@ -55,7 +55,7 @@ How many rounds make up a full game. Points carry over between rounds; the playe
 **Candy per round** *(default: 50)*
 How many pieces of candy the piñata holds at the start of each round. This resets every round regardless of how many pieces were left over.
 
-**Candy colors** *(default: 5, range: 1–5)*
+**Candy colors** *(default: 5, range: 2–5)*
 How many candy colors are in the mix. Colors are always drawn from the same ordered list — blue, green, pink, yellow — plus **licorice is always included** as the 5th color regardless of this setting. Setting this to 3 gives blue, green, and licorice. Licorice candy uses a special pickup mechanic (see Scoring section).
 
 **End of round** *(default: release)*
@@ -117,7 +117,7 @@ The probability climbs smoothly between these two values across the eligible tur
 When a licorice piece falls in a drop event, each piece independently rolls against this probability. If the roll passes, the piece is accidentally collected by a random non-batter player and goes into their score (and triggers the −1 licorice penalty at round end). If the roll fails, the piece disappears — it is not held by anyone. The licorice drop counter in the center panel tracks how many licorice pieces have appeared in drops this round.
 
 **Goals B & C share color** *(default: off)*
-When enabled, Goal C is forced to use the same color as Goal B — both goals reference the same color. When disabled (default), Goal C always draws a different color than Goal B.
+When enabled, Goal C is forced to use the same color as Goal B — both goals reference the same color. When disabled (default), Goal C draws a different color than Goal B when more than one active non-licorice color is available; if only one exists, both goals share it regardless of this setting.
 
 ---
 
@@ -138,7 +138,7 @@ Controls the suspense window between pressing ACTIVATE and seeing the result. Ea
 
 ## Candy colors
 
-The simulator uses 5 candy colors: blue, green, pink, yellow, and licorice (black). The **Candy colors** control lets you use 1–5 of them — licorice is always included, and the remaining active colors are drawn from the front of the non-licorice list. Color counts per player are tracked and used for all goal scoring.
+The simulator uses 5 candy colors: blue, green, pink, yellow, and licorice (black). The **Candy colors** control lets you use 2–5 of them — licorice is always included, and the remaining active colors are drawn from the front of the non-licorice list. Color counts per player are tracked and used for all goal scoring.
 
 Licorice candy (`#2d2d2d`) behaves differently from other colors: it is not freely distributed when it falls. Instead, each piece independently rolls against the **Licorice pickup chance** to determine if a player accidentally picks it up. Uncollected licorice simply disappears.
 

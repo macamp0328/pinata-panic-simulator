@@ -827,7 +827,7 @@ function buildPlayers(count, existing) {
   return Array.from({ length: count }, (_, i) => ({
     name: existing?.[i]?.name ?? freshNames[i],
     roundCandy: 0,
-    totalCandy: existing?.[i]?.totalCandy ?? 0,
+    totalCandy: 0,
     colorCounts: {},
     points: 0,
     roundPoints: 0,

@@ -36,7 +36,7 @@ It is not a polished game. It is a playtesting instrument.
 
 ## Candy color system
 
-There are always exactly 5 colors in the master palette. `numCandyColors` (1–5) controls how many are active. **Licorice is always the 5th color and is always included** regardless of `numCandyColors`. It cannot be a Favorite Color and is never used in Goal B/C decks.
+There are always exactly 5 colors in the master palette. `numCandyColors` (2–5) controls how many are active. **Licorice is always the 5th color and is always included** regardless of `numCandyColors`. It cannot be a Favorite Color and is never used in Goal B/C decks.
 
 ```js
 const COLOR_HEX = {
@@ -82,7 +82,7 @@ Points are tallied at the end of each round via `scoreRound()` and applied via `
 - `drawRoundGoals()` returns `{ goalB, goalC, goalCThreshold }`
 - **Goal A** (always active): player(s) with most total candy this round → +1
 - **Goal B**: shuffle active non-licorice colors, pick one; player(s) with most of that color → +1
-- **Goal C**: drawn from separate shuffle (or same as B if `config.goalBCShareColor` is true); all players holding ≥ threshold of that color → +1
+- **Goal C**: drawn from separate shuffle (or same as B if `config.goalBCShareColor` is true); falls back to goalB color when only one active non-licorice color exists; all players holding ≥ threshold of that color → +1
 - `goalCThreshold = Math.max(2, Math.floor(config.candyPerRound / 10))`
 
 ### Licorice penalty
