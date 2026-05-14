@@ -292,6 +292,7 @@
     .goal-card-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
     .goal-card-reward { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
     .goal-card.goal-a .goal-card-label { color: var(--accent2); }
+    .goal-card-emoji { font-size: 20px; line-height: 1; margin: 0 auto 4px; display: block; }
 
     /* ── Licorice counter ──────────────────────────────────────────── */
     .licorice-counter {
@@ -1091,6 +1092,11 @@ function renderGoals() {
       sw.className = 'goal-card-swatch';
       sw.style.background = COLOR_HEX[colorKey] ?? '#888';
       card.appendChild(sw);
+    } else if (label === 'GOAL A') {
+      const em = document.createElement('span');
+      em.className = 'goal-card-emoji';
+      em.textContent = '🤢';
+      card.appendChild(em);
     }
     const nm = document.createElement('div');
     nm.className = 'goal-card-name';
