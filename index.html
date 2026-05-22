@@ -31,10 +31,80 @@
       overflow: hidden;
       display: grid;
       grid-template-columns: 240px 1fr 300px;
+      grid-template-rows: auto 1fr;
     }
 
     .panel { overflow-y: auto; padding: 16px; border-right: 1px solid var(--border); }
     .panel:last-child { border-right: none; }
+
+    /* ── Tab bar + mode switching ──────────────────────────────────── */
+    #tab-bar {
+      grid-column: 1 / -1; grid-row: 1;
+      display: flex; gap: 2px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+    }
+    .tab-btn {
+      background: none; border: none; cursor: pointer; font: inherit;
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-muted); padding: 12px 16px;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    #panel-players  { grid-column: 1;     grid-row: 2; }
+    #panel-center   { grid-column: 2;     grid-row: 2; }
+    #panel-batch    { grid-column: 1 / 3; grid-row: 2; background: var(--surface); }
+    #panel-controls { grid-column: 3;     grid-row: 2; }
+    body.mode-batch #panel-players,
+    body.mode-batch #panel-center { display: none; }
+    body.mode-play  #panel-batch  { display: none; }
+
+    /* ── Batch dashboard ───────────────────────────────────────────── */
+    .batch-intro { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+    .batch-run-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .batch-preset {
+      background: var(--surface3); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 8px 14px; cursor: pointer; font: inherit; font-weight: 600; color: var(--text);
+    }
+    .batch-preset:hover:not(:disabled) { border-color: var(--accent); }
+    .batch-preset:disabled { opacity: .5; cursor: default; }
+    .batch-csv {
+      margin-left: auto; background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius); padding: 8px 14px; cursor: pointer; font: inherit; font-weight: 600;
+    }
+    .batch-csv:disabled { opacity: .4; cursor: default; }
+    .batch-progress {
+      height: 8px; background: var(--surface3); border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+    }
+    .batch-progress > div { height: 100%; background: var(--accent2); width: 0%; transition: width .08s linear; }
+    #batch-status { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    .batch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .batch-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+    }
+    .batch-card h3 { margin: 0 0 10px; }
+    .batch-empty { color: var(--text-muted); font-size: 13px; padding: 48px 0; text-align: center; }
+    .batch-flag { color: var(--accent); font-size: 11px; font-weight: 600; margin-top: 8px; }
+    .batch-ok   { color: var(--text-muted); font-size: 11px; margin-top: 8px; }
+    .batch-bar-row {
+      display: grid; grid-template-columns: 74px 1fr 62px;
+      align-items: center; gap: 8px; margin: 5px 0; font-size: 12px;
+    }
+    .batch-bar-track { background: var(--surface3); border-radius: 3px; height: 15px; overflow: hidden; }
+    .batch-bar-fill { height: 100%; border-radius: 3px; min-width: 1px; }
+    .batch-bar-val { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .batch-signals { display: flex; gap: 28px; flex-wrap: wrap; }
+    .batch-signal .big { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .batch-signal .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .batch-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+    .batch-config {
+      font-size: 11px; color: var(--text-muted); margin-top: 14px; line-height: 1.7;
+      border-top: 1px solid var(--border); padding-top: 10px;
+    }
 
     h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); margin-bottom: 10px; }
     h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin: 14px 0 6px; }
@@ -400,14 +470,21 @@
     @media (max-width: 640px) {
       body {
         grid-template-columns: 1fr;
+        grid-template-rows: none;
         height: auto;
         min-height: 100svh;
         overflow-y: auto;
         overflow-x: hidden;
       }
-      /* Action area first, scores second, settings last */
+      #tab-bar, #panel-players, #panel-center, #panel-batch, #panel-controls {
+        grid-column: auto; grid-row: auto;
+      }
+      /* Tab bar first, then the active mode, settings last */
+      #tab-bar { order: 0; }
       #panel-center  { order: 1; overflow-y: visible; padding: 12px 16px;
                        flex: none; border-right: none; border-bottom: 1px solid var(--border); }
+      #panel-batch   { order: 1; overflow-y: visible;
+                       border-right: none; border-bottom: 1px solid var(--border); }
       #panel-players { order: 2; overflow-y: visible;
                        border-right: none; border-bottom: 1px solid var(--border); }
       #panel-controls { order: 3; overflow-y: visible; border-right: none; }
@@ -425,7 +502,13 @@
     }
   </style>
 </head>
-<body>
+<body class="mode-play">
+
+<!-- TAB BAR -->
+<div id="tab-bar">
+  <button class="tab-btn is-active" data-tab="play">Play</button>
+  <button class="tab-btn" data-tab="batch">Batch Analysis</button>
+</div>
 
 <!-- LEFT: Players -->
 <div class="panel" id="panel-players">
@@ -612,6 +695,25 @@
     <div id="event-log"></div>
   </div>
 
+</div>
+
+<!-- BATCH: Simulation dashboard -->
+<div class="panel" id="panel-batch">
+  <h2>Batch Analysis</h2>
+  <p class="batch-intro">
+    Runs the current control-panel settings as complete games &mdash; headless, no animation &mdash;
+    to test whether the configuration is fair, balanced, and interesting at scale.
+  </p>
+  <div class="batch-run-bar">
+    <span style="font-size:12px;color:var(--text-muted);">Simulate</span>
+    <button class="batch-preset" data-runs="100">100 games</button>
+    <button class="batch-preset" data-runs="1000">1,000 games</button>
+    <button class="batch-preset" data-runs="10000">10,000 games</button>
+    <button class="batch-csv" id="btn-batch-csv" disabled>Download CSV</button>
+  </div>
+  <div class="batch-progress"><div id="batch-progress-fill"></div></div>
+  <div id="batch-status"></div>
+  <div id="batch-dashboard"></div>
 </div>
 
 <!-- RIGHT: Control panel -->
@@ -892,6 +994,11 @@ const state = {
   droppedLicoriceCount: 0,  // licorice pieces that fell in drop events this round
   roundScoreHistory: [],    // [{round, goals, favoriteCards, scores, playerSnapshots}]
   autoplay: false,
+  activeTab: 'play',        // 'play' | 'batch'
+  batchResult: null,        // aggregate object from runBatch(), null until a run completes
+  batchRunning: false,      // true while a batch is in progress
+  batchProgress: 0,         // games completed in the current run
+  batchTarget: 0,           // total games requested for the current run
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -949,12 +1056,12 @@ function getAllPresets() {
 // localStorage side effects).
 let userPresets = [];
 
-function buildCandyPool() {
-  const colors = getActiveColors(config);
+function buildCandyPool(cfg = config) {
+  const colors = getActiveColors(cfg);
   const pool = {};
-  const licoriceCount = Math.floor(config.candyPerRound / 9);
+  const licoriceCount = Math.floor(cfg.candyPerRound / 9);
   pool['licorice'] = licoriceCount;
-  const remaining = config.candyPerRound - licoriceCount;
+  const remaining = cfg.candyPerRound - licoriceCount;
   const nonLicorice = colors.filter(c => c !== 'licorice');
   const perColor = nonLicorice.length > 0 ? Math.floor(remaining / nonLicorice.length) : 0;
   for (const c of nonLicorice) pool[c] = perColor;
@@ -1006,17 +1113,17 @@ function initRound(freshGame = false) {
   }
 }
 
-function getPhaseForTurn(turn) {
+function getPhaseForTurn(turn, cfg = config) {
   let matched = null;
-  for (const ph of config.phases) {
+  for (const ph of cfg.phases) {
     if (turn >= ph.startTurn && turn <= ph.endTurn) matched = ph;
   }
-  return matched ?? config.phases.at(-1);
+  return matched ?? cfg.phases.at(-1);
 }
 
-function checkFinalBreak(turn) {
-  if (turn < config.finalBreakStartTurn) return false;
-  const { finalBreakStartTurn, maxTurns, finalBreakStartPct, finalBreakEndPct } = config;
+function checkFinalBreak(turn, cfg = config) {
+  if (turn < cfg.finalBreakStartTurn) return false;
+  const { finalBreakStartTurn, maxTurns, finalBreakStartPct, finalBreakEndPct } = cfg;
   const denom  = maxTurns - finalBreakStartTurn;
   const chance = denom <= 0
     ? finalBreakEndPct
@@ -1024,9 +1131,9 @@ function checkFinalBreak(turn) {
   return Math.random() < chance;
 }
 
-function drawCandy(n, pool) {
+function drawCandy(n, pool, cfg = config) {
   const drawn = [];
-  const colors = getActiveColors(config);
+  const colors = getActiveColors(cfg);
   let remaining = totalCandyInPool(pool);
   for (let i = 0; i < n && remaining > 0; i++) {
     let r = randInt(0, remaining - 1);
@@ -1038,25 +1145,25 @@ function drawCandy(n, pool) {
   return drawn;
 }
 
-function distributeCandy(pieces, batterIndex) {
+function distributeCandy(pieces, batterIndex, st = state, cfg = config) {
   const dist = {};
-  const eligible = state.players.map((_, i) => i).filter(i => i !== batterIndex);
+  const eligible = st.players.map((_, i) => i).filter(i => i !== batterIndex);
   for (const color of pieces) {
     if (color === 'licorice') {
-      state.droppedLicoriceCount++;
-      if (Math.random() < config.licoricePickupChance) {
+      st.droppedLicoriceCount++;
+      if (Math.random() < cfg.licoricePickupChance) {
         const r = eligible[randInt(0, eligible.length - 1)];
         dist[r] = (dist[r] ?? 0) + 1;
-        state.players[r].roundCandy++;
-        state.players[r].totalCandy++;
-        state.players[r].colorCounts['licorice'] = (state.players[r].colorCounts['licorice'] ?? 0) + 1;
+        st.players[r].roundCandy++;
+        st.players[r].totalCandy++;
+        st.players[r].colorCounts['licorice'] = (st.players[r].colorCounts['licorice'] ?? 0) + 1;
       }
     } else {
       const r = eligible[randInt(0, eligible.length - 1)];
       dist[r] = (dist[r] ?? 0) + 1;
-      state.players[r].roundCandy++;
-      state.players[r].totalCandy++;
-      state.players[r].colorCounts[color] = (state.players[r].colorCounts[color] ?? 0) + 1;
+      st.players[r].roundCandy++;
+      st.players[r].totalCandy++;
+      st.players[r].colorCounts[color] = (st.players[r].colorCounts[color] ?? 0) + 1;
     }
   }
   return dist;
@@ -1066,12 +1173,12 @@ function advanceBatter() {
   state.batterIndex = (state.batterIndex + 1) % state.players.length;
 }
 
-function resolveEndOfRound() {
-  const remaining = totalCandyInPool(state.candyPool);
+function resolveEndOfRound(st = state, cfg = config) {
+  const remaining = totalCandyInPool(st.candyPool);
   const result = { type: 'end', remaining };
-  if (config.endOfRoundBehavior === 'release' && remaining > 0) {
-    result.pieces = drawCandy(remaining, state.candyPool);
-    result.dist   = distributeCandy(result.pieces, state.batterIndex);
+  if (cfg.endOfRoundBehavior === 'release' && remaining > 0) {
+    result.pieces = drawCandy(remaining, st.candyPool, cfg);
+    result.dist   = distributeCandy(result.pieces, st.batterIndex, st, cfg);
   }
   return result;
 }
@@ -1084,29 +1191,29 @@ function shuffle(arr) {
   return arr;
 }
 
-function dealFavoriteCards() {
-  const nonLicorice = getActiveColors(config).filter(c => c !== 'licorice');
+function dealFavoriteCards(st = state, cfg = config) {
+  const nonLicorice = getActiveColors(cfg).filter(c => c !== 'licorice');
   const deck = shuffle([...nonLicorice, ...nonLicorice]); // 2× each color
-  return state.players.map((_, i) => deck[i % deck.length]);
+  return st.players.map((_, i) => deck[i % deck.length]);
 }
 
-function drawRoundGoals() {
-  const nonLicorice = getActiveColors(config).filter(c => c !== 'licorice');
+function drawRoundGoals(cfg = config) {
+  const nonLicorice = getActiveColors(cfg).filter(c => c !== 'licorice');
   if (nonLicorice.length === 0) return { goalB: null, goalC: null, goalCThreshold: 0 };
   const goalB = shuffle([...nonLicorice])[0];
   let goalC;
-  if (config.goalBCShareColor) {
+  if (cfg.goalBCShareColor) {
     goalC = goalB;
   } else {
     const others = nonLicorice.filter(c => c !== goalB);
     goalC = others.length > 0 ? shuffle(others)[0] : goalB;
   }
-  const goalCThreshold = Math.max(2, Math.floor(config.candyPerRound / 10));
+  const goalCThreshold = Math.max(2, Math.floor(cfg.candyPerRound / 10));
   return { goalB, goalC, goalCThreshold };
 }
 
-function scoreRound() {
-  const players = state.players;
+function scoreRound(st = state) {
+  const players = st.players;
   const scores = players.map(() => ({ goalA: 0, goalB: 0, goalC: 0, favorite: 0, licoricePenalty: 0, total: 0 }));
 
   // Goal A: most total candy this round
@@ -1114,7 +1221,7 @@ function scoreRound() {
   players.forEach((p, i) => { if (p.roundCandy === maxCandy) scores[i].goalA = 1; });
 
   // Goal B: most of the drawn color
-  const { goalB, goalC, goalCThreshold } = state.roundGoals;
+  const { goalB, goalC, goalCThreshold } = st.roundGoals;
   if (goalB) {
     const maxB = Math.max(...players.map(p => p.colorCounts[goalB] ?? 0));
     if (maxB > 0) players.forEach((p, i) => { if ((p.colorCounts[goalB] ?? 0) === maxB) scores[i].goalB = 1; });
@@ -1126,7 +1233,7 @@ function scoreRound() {
   }
 
   // Favorite color: most of each player's personal secret color
-  const favCounts = players.map((p, i) => p.colorCounts[state.favoriteColorCards[i]] ?? 0);
+  const favCounts = players.map((p, i) => p.colorCounts[st.favoriteColorCards[i]] ?? 0);
   const maxFav = Math.max(...favCounts);
   if (maxFav > 0) players.forEach((_, i) => { if (favCounts[i] === maxFav) scores[i].favorite = 1; });
 
@@ -1137,21 +1244,154 @@ function scoreRound() {
   return scores;
 }
 
-function applyRoundScoring() {
-  const roundScores = scoreRound();
+function applyRoundScoring(st = state) {
+  const roundScores = scoreRound(st);
   roundScores.forEach((s, i) => {
-    state.players[i].roundPoints = s.total;
-    state.players[i].points += s.total;
+    st.players[i].roundPoints = s.total;
+    st.players[i].points += s.total;
   });
-  state.roundScoreHistory.push({
-    round: state.currentRound,
-    goals: { ...state.roundGoals },
-    favoriteCards: [...state.favoriteColorCards],
+  st.roundScoreHistory.push({
+    round: st.currentRound,
+    goals: { ...st.roundGoals },
+    favoriteCards: [...st.favoriteColorCards],
     scores: roundScores,
-    playerSnapshots: state.players.map(p => ({
+    playerSnapshots: st.players.map(p => ({
       name: p.name, roundCandy: p.roundCandy, colorCounts: { ...p.colorCounts },
     })),
   });
+}
+
+/* ── Headless batch simulation ───────────────────────────────────
+   Replays the exact turn-resolution flow of the ACTIVATE handler with
+   no DOM, audio, or timers, so thousands of full games run instantly. */
+
+function makeSimState(cfg) {
+  return {
+    currentRound: 1,
+    batterIndex: 0,
+    candyPool: {},
+    droppedLicoriceCount: 0,
+    favoriteColorCards: [],
+    roundGoals: {},
+    roundScoreHistory: [],
+    players: Array.from({ length: cfg.numPlayers }, () => ({
+      name: '', roundCandy: 0, totalCandy: 0, colorCounts: {}, points: 0, roundPoints: 0,
+    })),
+  };
+}
+
+function simulateOneGame(cfg) {
+  const st = makeSimState(cfg);
+  for (let round = 1; round <= cfg.totalRounds; round++) {
+    st.currentRound = round;
+    for (const p of st.players) { p.roundCandy = 0; p.roundPoints = 0; p.colorCounts = {}; }
+    st.candyPool = buildCandyPool(cfg);
+    st.droppedLicoriceCount = 0;
+    st.favoriteColorCards = dealFavoriteCards(st, cfg);
+    st.roundGoals = drawRoundGoals(cfg);
+    const totalTurns = randInt(cfg.minTurns, cfg.maxTurns);
+    for (let turn = 1; turn <= totalTurns; turn++) {
+      // 1. Final break ends the round immediately; batter does not advance.
+      if (checkFinalBreak(turn, cfg)) {
+        const pieces = drawCandy(totalCandyInPool(st.candyPool), st.candyPool, cfg);
+        distributeCandy(pieces, st.batterIndex, st, cfg);
+        applyRoundScoring(st);
+        break;
+      }
+      // 2. Drop check, then candy draw.
+      if (Math.random() < cfg.dropChance) {
+        const phase  = getPhaseForTurn(turn, cfg);
+        const amount = Math.min(randInt(phase.minCandy, phase.maxCandy), totalCandyInPool(st.candyPool));
+        if (amount > 0) {
+          const pieces = drawCandy(amount, st.candyPool, cfg);
+          distributeCandy(pieces, st.batterIndex, st, cfg);
+        }
+      }
+      st.batterIndex = (st.batterIndex + 1) % st.players.length;
+      // 3. Last turn: release leftover candy, then score.
+      if (turn === totalTurns) {
+        resolveEndOfRound(st, cfg);
+        applyRoundScoring(st);
+      }
+    }
+  }
+  return {
+    finalScores: st.players.map(p => p.points),
+    roundScores: st.roundScoreHistory.map(h => h.scores),
+  };
+}
+
+// Derive per-game outcome metrics from one simulateOneGame() result.
+function analyzeGame(g) {
+  const n = g.finalScores.length;
+  const max = Math.max(...g.finalScores);
+  const winners = [];
+  g.finalScores.forEach((s, i) => { if (s === max) winners.push(i); });
+  const sorted = [...g.finalScores].sort((a, b) => b - a);
+  const margin = sorted[0] - (sorted[1] ?? sorted[0]);
+
+  // Cumulative leader(s) after each round → lead changes + early-leader test.
+  const cum = new Array(n).fill(0);
+  const leaders = [];
+  for (const rs of g.roundScores) {
+    rs.forEach((s, i) => { cum[i] += s.total; });
+    const cmax = Math.max(...cum);
+    leaders.push(cum.map((c, i) => (c === cmax ? i : -1)).filter(i => i >= 0));
+  }
+  let leadChanges = 0;
+  for (let r = 1; r < leaders.length; r++) {
+    if (leaders[r].join(',') !== leaders[r - 1].join(',')) leadChanges++;
+  }
+  const r1 = leaders[0] ?? [];
+  const wireToWire = r1.some(i => winners.includes(i));
+
+  // Points contributed by each scoring source, summed over rounds and players.
+  const goals = { goalA: 0, goalB: 0, goalC: 0, favorite: 0, licoricePenalty: 0 };
+  for (const rs of g.roundScores) {
+    for (const s of rs) {
+      goals.goalA += s.goalA; goals.goalB += s.goalB; goals.goalC += s.goalC;
+      goals.favorite += s.favorite; goals.licoricePenalty += s.licoricePenalty;
+    }
+  }
+  return { scores: g.finalScores, winners, margin, leadChanges, wireToWire, goals };
+}
+
+// Run n games in setTimeout-chunked batches so the UI can show progress.
+function runBatch(cfg, n, onProgress, onDone) {
+  const records = [];
+  const agg = {
+    n, numPlayers: cfg.numPlayers, cfg: structuredClone(cfg),
+    winsPerSeat:     new Array(cfg.numPlayers).fill(0),
+    soleWinsPerSeat: new Array(cfg.numPlayers).fill(0),
+    tieGames: 0,
+    scoreTally:  {},   // final score value → how many player-results landed there
+    marginTally: {},   // margin value → game count
+    goalSum: { goalA: 0, goalB: 0, goalC: 0, favorite: 0, licoricePenalty: 0 },
+    wireToWire: 0,
+    leadChangeSum: 0,
+    records,
+  };
+  let done = 0;
+  const CHUNK = 500;
+  function step() {
+    const end = Math.min(done + CHUNK, n);
+    for (; done < end; done++) {
+      const a = analyzeGame(simulateOneGame(cfg));
+      records.push(a);
+      a.winners.forEach(i => agg.winsPerSeat[i]++);
+      if (a.winners.length > 1) agg.tieGames++;
+      else agg.soleWinsPerSeat[a.winners[0]]++;
+      a.scores.forEach(s => { agg.scoreTally[s] = (agg.scoreTally[s] ?? 0) + 1; });
+      agg.marginTally[a.margin] = (agg.marginTally[a.margin] ?? 0) + 1;
+      for (const k in agg.goalSum) agg.goalSum[k] += a.goals[k];
+      if (a.wireToWire) agg.wireToWire++;
+      agg.leadChangeSum += a.leadChanges;
+    }
+    onProgress(done, n);
+    if (done < n) setTimeout(step, 0);
+    else onDone(agg);
+  }
+  step();
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1162,6 +1402,172 @@ function renderAll() {
   renderPlayers();
   renderCenterPanel();
   renderControlPanel();
+  renderBatch();
+}
+
+/* ── Batch Analysis tab ──────────────────────────────────────── */
+
+function renderTabs() {
+  document.body.classList.toggle('mode-play',  state.activeTab === 'play');
+  document.body.classList.toggle('mode-batch', state.activeTab === 'batch');
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.tab === state.activeTab);
+  });
+}
+
+function pct(num, den) { return den > 0 ? (num / den * 100) : 0; }
+function fmtPct(num, den) { return pct(num, den).toFixed(1) + '%'; }
+
+function renderBatch() {
+  renderTabs();
+  if (state.activeTab !== 'batch') return;  // panel hidden — skip dashboard work
+  // Run controls
+  document.querySelectorAll('.batch-preset').forEach(b => { b.disabled = state.batchRunning; });
+  document.getElementById('btn-batch-csv').disabled = state.batchRunning || !state.batchResult;
+  updateBatchProgress();
+  renderBatchDashboard();
+}
+
+function updateBatchProgress() {
+  const fill   = document.getElementById('batch-progress-fill');
+  const status = document.getElementById('batch-status');
+  if (state.batchRunning) {
+    fill.style.width = fmtPct(state.batchProgress, state.batchTarget);
+    status.textContent = `Simulating… ${state.batchProgress.toLocaleString()} / ${state.batchTarget.toLocaleString()} games`;
+  } else if (state.batchResult) {
+    fill.style.width = '100%';
+    status.textContent = `Done — ${state.batchResult.n.toLocaleString()} games simulated.`;
+  } else {
+    fill.style.width = '0%';
+    status.textContent = 'Pick a run size above. Settings are read live from the Control Panel.';
+  }
+}
+
+// One labelled horizontal bar inside a metric card.
+function batchBar(label, fillPct, hexColor, valueText) {
+  const w = Math.max(0, Math.min(100, fillPct));
+  return `<div class="batch-bar-row">
+    <span>${escHtml(label)}</span>
+    <span class="batch-bar-track"><span class="batch-bar-fill" style="width:${w}%;background:${hexColor};"></span></span>
+    <span class="batch-bar-val">${escHtml(valueText)}</span>
+  </div>`;
+}
+
+function renderBatchDashboard() {
+  const host = document.getElementById('batch-dashboard');
+  const r = state.batchResult;
+  if (!r) {
+    host.innerHTML = '<div class="batch-empty">No results yet — run a simulation to see fairness, balance, and drama metrics.</div>';
+    return;
+  }
+  const n = r.n, np = r.numPlayers;
+
+  // ── Card 1: Win distribution by seat ──────────────────────────
+  // Wins count every tied winner, so the seat-win-rate total exceeds 100%.
+  // A fair game gives every seat the SAME rate — compare each seat to the
+  // mean of all seats, not to 100/np.
+  const winPcts = r.winsPerSeat.map(w => pct(w, n));
+  const fairShare = winPcts.reduce((a, b) => a + b, 0) / np;
+  let maxDev = 0;
+  let winRows = '';
+  const winBarScale = Math.max(...winPcts, 1);
+  for (let i = 0; i < np; i++) {
+    const winP = winPcts[i];
+    maxDev = Math.max(maxDev, Math.abs(winP - fairShare));
+    winRows += batchBar(`Seat ${i + 1}`, pct(winP, winBarScale), 'var(--accent2)',
+      `${winP.toFixed(1)}%`);
+  }
+  const biased = maxDev > 3;
+  const winNote = biased
+    ? `<div class="batch-flag">⚠ Seat win rates deviate up to ${maxDev.toFixed(1)} pts from the seat average of ${fairShare.toFixed(1)}% — possible turn-order bias.</div>`
+    : `<div class="batch-ok">✓ Win rates are within ${maxDev.toFixed(1)} pts of the seat average (${fairShare.toFixed(1)}%) — no meaningful seat bias.</div>`;
+  const card1 = `<div class="batch-card">
+    <h3>Win Distribution by Seat</h3>
+    ${winRows}
+    <div class="batch-note">Wins count every tied winner. Tie games: ${fmtPct(r.tieGames, n)}.</div>
+    ${winNote}
+  </div>`;
+
+  // ── Card 2: Score spread & closeness ──────────────────────────
+  const scoreVals = Object.keys(r.scoreTally).map(Number).sort((a, b) => a - b);
+  const scoreMax = Math.max(...Object.values(r.scoreTally), 1);
+  const totalResults = np * n;
+  let scoreRows = '';
+  for (const v of scoreVals) {
+    const c = r.scoreTally[v];
+    scoreRows += batchBar(`${v} pts`, pct(c, scoreMax), 'var(--accent)',
+      fmtPct(c, totalResults));
+  }
+  let tie = 0, close = 0, mid = 0, blow = 0;
+  for (const [m, c] of Object.entries(r.marginTally)) {
+    const mm = Number(m);
+    if (mm === 0) tie += c; else if (mm === 1) close += c;
+    else if (mm === 2) mid += c; else blow += c;
+  }
+  let marginSum = 0;
+  for (const [m, c] of Object.entries(r.marginTally)) marginSum += Number(m) * c;
+  const card2 = `<div class="batch-card">
+    <h3>Score Spread &amp; Closeness</h3>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Final score frequency (all players)</div>
+    ${scoreRows}
+    <div class="batch-note">
+      Avg margin of victory: <strong style="color:var(--text);">${(marginSum / n).toFixed(2)} pts</strong><br>
+      Ties ${fmtPct(tie, n)} · Nail-biters (1) ${fmtPct(close, n)} · Close (2) ${fmtPct(mid, n)} · Blowouts (3+) ${fmtPct(blow, n)}
+    </div>
+  </div>`;
+
+  // ── Card 3: Scoring source breakdown ──────────────────────────
+  const goalDefs = [
+    ['Goal A',   'goalA',           'var(--accent2)'],
+    ['Goal B',   'goalB',           'var(--accent2)'],
+    ['Goal C',   'goalC',           'var(--accent2)'],
+    ['Favorite', 'favorite',        'var(--accent2)'],
+    ['Licorice', 'licoricePenalty', 'var(--accent)'],
+  ];
+  const avgs = goalDefs.map(([, k]) => r.goalSum[k] / n);
+  const goalScale = Math.max(...avgs.map(Math.abs), 0.001);
+  let goalRows = '';
+  goalDefs.forEach(([label, k, color], idx) => {
+    const avg = avgs[idx];
+    goalRows += batchBar(label, Math.abs(avg) / goalScale * 100, color,
+      (avg >= 0 ? '+' : '') + avg.toFixed(2));
+  });
+  const card3 = `<div class="batch-card">
+    <h3>Scoring Source Breakdown</h3>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Avg points awarded per game (all players)</div>
+    ${goalRows}
+    <div class="batch-note">A source near 0 contributes little; a large gap means one source dominates the game.</div>
+  </div>`;
+
+  // ── Card 4: Drama / volatility ────────────────────────────────
+  const card4 = `<div class="batch-card">
+    <h3>Drama &amp; Volatility</h3>
+    <div class="batch-signals">
+      <div class="batch-signal">
+        <div class="big">${fmtPct(r.wireToWire, n)}</div>
+        <div class="lbl">Early leader wins</div>
+      </div>
+      <div class="batch-signal">
+        <div class="big">${(r.leadChangeSum / n).toFixed(2)}</div>
+        <div class="lbl">Lead changes / game</div>
+      </div>
+    </div>
+    <div class="batch-note">
+      High "early leader wins" with few lead changes means games are decided early — less suspense.
+      More lead changes generally means a more dramatic finish.
+    </div>
+  </div>`;
+
+  const c = r.cfg;
+  const configEcho = `<div class="batch-config">
+    <strong>Configuration tested:</strong><br>
+    ${c.numPlayers} players · ${c.totalRounds} rounds · ${c.candyPerRound} candy/round · ${c.numCandyColors} colors ·
+    turns ${c.minTurns}–${c.maxTurns} · drop ${(c.dropChance * 100).toFixed(0)}% ·
+    end-of-round ${escHtml(c.endOfRoundBehavior)} · licorice pickup ${(c.licoricePickupChance * 100).toFixed(0)}% ·
+    Goal B/C share color: ${c.goalBCShareColor ? 'yes' : 'no'}
+  </div>`;
+
+  host.innerHTML = `<div class="batch-grid">${card1}${card2}${card3}${card4}</div>${configEcho}`;
 }
 
 function renderPlayers() {
@@ -1944,6 +2350,85 @@ document.getElementById('btn-autoplay').addEventListener('click', () => {
     setTimeout(() => document.getElementById('btn-activate').click(), 600);
   }
 });
+
+/* ── Tab switching ───────────────────────────────────────────── */
+document.getElementById('tab-bar').addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  state.activeTab = btn.dataset.tab;
+  renderBatch();
+});
+
+/* ── Batch run presets ───────────────────────────────────────── */
+document.querySelectorAll('.batch-preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (state.batchRunning) return;
+    const runs = Number(btn.dataset.runs);
+    const cfg  = structuredClone(pendingConfig);
+    state.batchRunning  = true;
+    state.batchResult   = null;
+    state.batchProgress = 0;
+    state.batchTarget   = runs;
+    renderBatch();
+    runBatch(cfg, runs,
+      (done) => { state.batchProgress = done; updateBatchProgress(); },
+      (agg)  => {
+        state.batchResult  = agg;
+        state.batchRunning = false;
+        renderBatch();
+      });
+  });
+});
+
+/* ── Batch CSV export ────────────────────────────────────────── */
+document.getElementById('btn-batch-csv').addEventListener('click', () => {
+  const r = state.batchResult;
+  if (!r) return;
+  downloadCsv(buildBatchCsv(r), 'pinata-panic-batch.csv');
+});
+
+function buildBatchCsv(r) {
+  const n = r.n, np = r.numPlayers, c = r.cfg;
+  const lines = [];
+  lines.push('Pinata Panic batch simulation');
+  lines.push(`games,${n}`);
+  lines.push(`players,${c.numPlayers},rounds,${c.totalRounds},candyPerRound,${c.candyPerRound},numColors,${c.numCandyColors}`);
+  lines.push(`minTurns,${c.minTurns},maxTurns,${c.maxTurns},dropChance,${c.dropChance},endOfRound,${c.endOfRoundBehavior}`);
+  lines.push(`licoricePickup,${c.licoricePickupChance},goalBCShareColor,${c.goalBCShareColor}`);
+  lines.push('');
+  lines.push('AGGREGATE');
+  lines.push('seat,winRatePct,soleWinRatePct');
+  for (let i = 0; i < np; i++) {
+    lines.push(`${i + 1},${(r.winsPerSeat[i] / n * 100).toFixed(3)},${(r.soleWinsPerSeat[i] / n * 100).toFixed(3)}`);
+  }
+  lines.push(`tieGamePct,${(r.tieGames / n * 100).toFixed(3)}`);
+  lines.push(`earlyLeaderWinsPct,${(r.wireToWire / n * 100).toFixed(3)}`);
+  lines.push(`avgLeadChangesPerGame,${(r.leadChangeSum / n).toFixed(4)}`);
+  for (const k of ['goalA', 'goalB', 'goalC', 'favorite', 'licoricePenalty']) {
+    lines.push(`avg_${k}_perGame,${(r.goalSum[k] / n).toFixed(4)}`);
+  }
+  lines.push('');
+  lines.push('PER GAME');
+  const seatCols = Array.from({ length: np }, (_, i) => `seat${i + 1}_score`);
+  lines.push(['game', ...seatCols, 'winnerSeats', 'margin', 'leadChanges', 'earlyLeaderWon'].join(','));
+  r.records.forEach((g, i) => {
+    const winners = g.winners.map(w => w + 1).join(' ');
+    lines.push([i + 1, ...g.scores, `"${winners}"`, g.margin, g.leadChanges, g.wireToWire ? 1 : 0].join(','));
+  });
+  return lines.join('\r\n');
+}
+
+function downloadCsv(text, filename) {
+  const blob = new Blob([text], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 /* ── Mute toggle ─────────────────────────────────────────────── */
 document.getElementById('btn-mute').addEventListener('click', () => {
