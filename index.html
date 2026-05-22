@@ -1477,10 +1477,17 @@ function renderBatchDashboard() {
     winRows += batchBar(`Seat ${i + 1}`, pct(winP, winBarScale), 'var(--accent2)',
       `${winP.toFixed(1)}%`);
   }
-  const biased = maxDev > 3;
+  // Flag bias only when the deviation exceeds statistical noise. A seat win
+  // rate is a proportion, so its sampling error shrinks with √n — a small run
+  // shows large deviations by chance alone. The noise band is ~3.5× the
+  // standard error, with a 3 pt floor for very large runs.
+  const p = fairShare / 100;
+  const se = Math.sqrt(p * (1 - p) / n) * 100;
+  const noiseBand = Math.max(3, 3.5 * se);
+  const biased = maxDev > noiseBand;
   const winNote = biased
-    ? `<div class="batch-flag">⚠ Seat win rates deviate up to ${maxDev.toFixed(1)} pts from the seat average of ${fairShare.toFixed(1)}% — possible turn-order bias.</div>`
-    : `<div class="batch-ok">✓ Win rates are within ${maxDev.toFixed(1)} pts of the seat average (${fairShare.toFixed(1)}%) — no meaningful seat bias.</div>`;
+    ? `<div class="batch-flag">⚠ Seat win rates deviate up to ${maxDev.toFixed(1)} pts from the seat average of ${fairShare.toFixed(1)}% — beyond the ±${noiseBand.toFixed(1)} pt noise band for ${n.toLocaleString()} games. Likely turn-order bias.</div>`
+    : `<div class="batch-ok">✓ Win rates are within ${maxDev.toFixed(1)} pts of the seat average (${fairShare.toFixed(1)}%) — inside the ±${noiseBand.toFixed(1)} pt noise band for ${n.toLocaleString()} games, so no detectable seat bias.</div>`;
   const card1 = `<div class="batch-card">
     <h3>Win Distribution by Seat</h3>
     ${winRows}
