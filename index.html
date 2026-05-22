@@ -787,6 +787,25 @@ const DEFAULTS = {
   goalBCShareColor: false,
 };
 
+// Valid range for each numeric config field — mirrors the control-input
+// min/max attributes. Used by sanitizeConfig() to clamp imported/corrupt
+// presets. `int: true` marks fields that must be whole numbers.
+const CONFIG_RANGES = {
+  numPlayers:           { min: 2,  max: 6,   int: true },
+  totalRounds:          { min: 1,  max: 10,  int: true },
+  candyPerRound:        { min: 10, max: 200, int: true },
+  numCandyColors:       { min: 2,  max: 5,   int: true },
+  minTurns:             { min: 1,  max: 30,  int: true },
+  maxTurns:             { min: 1,  max: 30,  int: true },
+  dropChance:           { min: 0,  max: 1 },
+  finalBreakStartTurn:  { min: 1,  max: 30,  int: true },
+  finalBreakStartPct:   { min: 0,  max: 1 },
+  finalBreakEndPct:     { min: 0,  max: 1 },
+  dropDelayMin:         { min: 0,  max: 10 },
+  dropDelayMax:         { min: 0,  max: 10 },
+  licoricePickupChance: { min: 0,  max: 1 },
+};
+
 // config = active values used by the running game
 // pendingConfig = what the control panel shows; applied on Restart Game
 const config        = structuredClone(DEFAULTS);
@@ -896,14 +915,17 @@ function sanitizeConfig(raw) {
   for (const key of Object.keys(DEFAULTS)) {
     if (key === 'phases') continue;
     const v = raw[key];
-    if (v !== null && v !== undefined && typeof v === typeof DEFAULTS[key]) clean[key] = v;
+    if (v === null || v === undefined || typeof v !== typeof DEFAULTS[key]) continue;
+    if (typeof v === 'number' && !Number.isFinite(v)) continue;  // reject NaN/Infinity
+    clean[key] = v;
   }
-  // Enforce ranges/enums on critical fields — fall back to DEFAULTS when invalid.
-  const intInRange = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
-  const numInRange = (v, lo, hi) => Number.isFinite(v) && v >= lo && v <= hi;
-  if (!intInRange(clean.numPlayers, 2, 6))     clean.numPlayers     = DEFAULTS.numPlayers;
-  if (!intInRange(clean.numCandyColors, 2, 5)) clean.numCandyColors = DEFAULTS.numCandyColors;
-  if (!numInRange(clean.dropChance, 0, 1))     clean.dropChance     = DEFAULTS.dropChance;
+  // Enforce ranges/enums on every numeric field (matching the control-input
+  // min/max constraints) — fall back to DEFAULTS when invalid.
+  for (const [key, r] of Object.entries(CONFIG_RANGES)) {
+    const v = clean[key];
+    const ok = Number.isFinite(v) && v >= r.min && v <= r.max && (!r.int || Number.isInteger(v));
+    if (!ok) clean[key] = DEFAULTS[key];
+  }
   if (!['release', 'lost'].includes(clean.endOfRoundBehavior)) clean.endOfRoundBehavior = DEFAULTS.endOfRoundBehavior;
   if (Array.isArray(raw.phases)) {
     const fields = ['startTurn', 'endTurn', 'minCandy', 'maxCandy'];
