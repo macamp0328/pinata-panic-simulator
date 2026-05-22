@@ -18,7 +18,8 @@ It is not a polished game. It is a playtesting instrument.
 - Inline SVG for graphics — no external image files
 - Light theme using CSS custom properties; no dark-mode media queries
 - Evergreen browsers only (last 2 years: Chrome, Safari, Firefox, Edge)
-- No localStorage, no network calls, no external dependencies
+- No network calls, no external dependencies
+- `localStorage` is allowed **only** for the preset library (see Presets section); nothing else may use it
 
 ## Design tokens (light theme depth stack)
 
@@ -191,3 +192,14 @@ Each turn appends a `.log-card` element (not raw HTML strings). Use `logEntry({ 
 ## Control panel timing
 
 Control panel changes go into `pendingConfig` and are **not active** until the user presses **Restart Game**. A warning banner (`#pending-banner`) becomes visible whenever `config` and `pendingConfig` differ.
+
+## Presets
+
+The Presets section at the top of the control panel saves and loads named config snapshots.
+
+- A preset is `{ name, config }` where `config` is a full config object (every key present, including `phases`).
+- `SEED_PRESETS` (Config section) holds built-in presets — always present, not editable or deletable.
+- User presets persist in `localStorage` under `PRESET_STORAGE_KEY` (`'pinata-panic-presets'`); the module-level `userPresets` array is the in-memory copy. This is the **only** sanctioned `localStorage` use.
+- `sanitizeConfig(raw)` fills missing/invalid keys from `DEFAULTS`, so a corrupt or outdated preset can never break the running game. Every preset is passed through it on load/import.
+- Loading a preset applies it to `config` and `pendingConfig` and restarts the game immediately. Unsaved control-panel edits are **not** persisted across a refresh — only saved presets are.
+- Export downloads the whole user library as `{ version, presets }` JSON; import merges a library file (built-in name collisions are skipped, same-named user presets are overwritten).
