@@ -95,7 +95,7 @@
       align-items: center; gap: 8px; margin: 5px 0; font-size: 12px;
     }
     .batch-bar-track { background: var(--surface3); border-radius: 3px; height: 15px; overflow: hidden; }
-    .batch-bar-fill { height: 100%; border-radius: 3px; min-width: 1px; }
+    .batch-bar-fill { height: 100%; border-radius: 3px; }
     .batch-bar-val { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
     .batch-signals { display: flex; gap: 28px; flex-wrap: wrap; }
     .batch-signal .big { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.1; }
@@ -1244,12 +1244,20 @@ function scoreRound(st = state) {
   return scores;
 }
 
-function applyRoundScoring(st = state) {
+// `full` controls how much round detail is recorded. The Play game needs the
+// goals/cards/snapshots for its summary panel; headless batch runs only need
+// the per-player score totals, so they pass full=false to skip the per-round
+// allocation of snapshot clones across thousands of games.
+function applyRoundScoring(st = state, full = true) {
   const roundScores = scoreRound(st);
   roundScores.forEach((s, i) => {
     st.players[i].roundPoints = s.total;
     st.players[i].points += s.total;
   });
+  if (!full) {
+    st.roundScoreHistory.push({ scores: roundScores });
+    return;
+  }
   st.roundScoreHistory.push({
     round: st.currentRound,
     goals: { ...st.roundGoals },
@@ -1295,7 +1303,7 @@ function simulateOneGame(cfg) {
       if (checkFinalBreak(turn, cfg)) {
         const pieces = drawCandy(totalCandyInPool(st.candyPool), st.candyPool, cfg);
         distributeCandy(pieces, st.batterIndex, st, cfg);
-        applyRoundScoring(st);
+        applyRoundScoring(st, false);
         break;
       }
       // 2. Drop check, then candy draw.
@@ -1311,7 +1319,7 @@ function simulateOneGame(cfg) {
       // 3. Last turn: release leftover candy, then score.
       if (turn === totalTurns) {
         resolveEndOfRound(st, cfg);
-        applyRoundScoring(st);
+        applyRoundScoring(st, false);
       }
     }
   }
@@ -1443,12 +1451,14 @@ function updateBatchProgress() {
   }
 }
 
-// One labelled horizontal bar inside a metric card.
+// One labelled horizontal bar inside a metric card. A true 0% value renders
+// no fill at all; a small non-zero value gets a 2px floor so it stays visible.
 function batchBar(label, fillPct, hexColor, valueText) {
   const w = Math.max(0, Math.min(100, fillPct));
+  const minW = w > 0 ? 'min-width:2px;' : '';
   return `<div class="batch-bar-row">
     <span>${escHtml(label)}</span>
-    <span class="batch-bar-track"><span class="batch-bar-fill" style="width:${w}%;background:${hexColor};"></span></span>
+    <span class="batch-bar-track"><span class="batch-bar-fill" style="width:${w}%;${minW}background:${hexColor};"></span></span>
     <span class="batch-bar-val">${escHtml(valueText)}</span>
   </div>`;
 }
