@@ -298,7 +298,7 @@ A scrolling log records each turn chronologically:
 | Graphics | Inline SVG | Piñata and candy graphics defined directly in the HTML — no external image files |
 | Browser target | Evergreen (last 2 years) | Chrome, Safari, Firefox, Edge — no IE, no legacy polyfills |
 | Build tools | None | File opens by double-clicking — no npm, no bundler, no server |
-| External deps | None | No CDN links, no network calls, no localStorage |
+| External deps | None | No CDN links, no network calls. `localStorage` is used **only** for the preset library — see CLAUDE.md Presets section |
 
 ### File Structure
 

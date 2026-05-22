@@ -898,6 +898,13 @@ function sanitizeConfig(raw) {
     const v = raw[key];
     if (v !== null && v !== undefined && typeof v === typeof DEFAULTS[key]) clean[key] = v;
   }
+  // Enforce ranges/enums on critical fields — fall back to DEFAULTS when invalid.
+  const intInRange = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
+  const numInRange = (v, lo, hi) => Number.isFinite(v) && v >= lo && v <= hi;
+  if (!intInRange(clean.numPlayers, 2, 6))     clean.numPlayers     = DEFAULTS.numPlayers;
+  if (!intInRange(clean.numCandyColors, 2, 5)) clean.numCandyColors = DEFAULTS.numCandyColors;
+  if (!numInRange(clean.dropChance, 0, 1))     clean.dropChance     = DEFAULTS.dropChance;
+  if (!['release', 'lost'].includes(clean.endOfRoundBehavior)) clean.endOfRoundBehavior = DEFAULTS.endOfRoundBehavior;
   if (Array.isArray(raw.phases)) {
     const fields = ['startTurn', 'endTurn', 'minCandy', 'maxCandy'];
     const phases = raw.phases
@@ -908,28 +915,6 @@ function sanitizeConfig(raw) {
   return clean;
 }
 
-function loadPresetLibrary() {
-  try {
-    const raw = localStorage.getItem(PRESET_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(p => p && typeof p.name === 'string' && p.config)
-      .map(p => ({ name: p.name, config: sanitizeConfig(p.config) }));
-  } catch {
-    return [];
-  }
-}
-
-function savePresetLibrary() {
-  try {
-    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(userPresets));
-  } catch (e) {
-    alert('Could not save presets: ' + e.message);
-  }
-}
-
 function getAllPresets() {
   return [
     ...SEED_PRESETS.map(p => ({ name: p.name, config: p.config, builtin: true })),
@@ -937,7 +922,10 @@ function getAllPresets() {
   ];
 }
 
-let userPresets = loadPresetLibrary();
+// In-memory copy of the user preset library; loaded from localStorage during
+// Init via loadPresetLibrary() (defined in the Events section, which owns the
+// localStorage side effects).
+let userPresets = [];
 
 function buildCandyPool() {
   const colors = getActiveColors(config);
@@ -2032,6 +2020,30 @@ document.getElementById('btn-load-defaults').addEventListener('click', () => {
 });
 
 /* ── Presets ─────────────────────────────────────────────────── */
+// Persistence helpers live here (not the Game logic section) because they
+// perform side effects: localStorage I/O and user-facing alerts.
+function loadPresetLibrary() {
+  try {
+    const raw = localStorage.getItem(PRESET_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(p => p && typeof p.name === 'string' && p.config)
+      .map(p => ({ name: p.name, config: sanitizeConfig(p.config) }));
+  } catch {
+    return [];
+  }
+}
+
+function savePresetLibrary() {
+  try {
+    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(userPresets));
+  } catch (e) {
+    alert('Could not save presets: ' + e.message);
+  }
+}
+
 function selectedPreset() {
   const sel = document.getElementById('preset-select');
   if (!sel || !sel.value) return null;
@@ -2070,7 +2082,10 @@ document.getElementById('btn-save-preset').addEventListener('click', () => {
   savePresetLibrary();
   input.value = '';
   renderAll();
+  // Select the just-saved preset, then re-sync the controls so the Delete
+  // button's enabled state reflects the new (user) selection immediately.
   document.getElementById('preset-select').value = 'user:' + name;
+  renderPresetControls();
 });
 
 document.getElementById('btn-delete-preset').addEventListener('click', () => {
@@ -2091,7 +2106,9 @@ document.getElementById('btn-export-presets').addEventListener('click', () => {
   a.href = url;
   a.download = 'pinata-panic-presets.json';
   a.click();
-  URL.revokeObjectURL(url);
+  // Revoke after the click has been processed — revoking synchronously can
+  // cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
 document.getElementById('btn-import-presets').addEventListener('click', () => {
@@ -2123,14 +2140,19 @@ document.getElementById('import-file').addEventListener('change', e => {
     } catch (err) {
       alert('Could not import presets: ' + err.message);
     }
+    e.target.value = '';
+  };
+  reader.onerror = () => {
+    alert('Could not read the file. Please try again.');
+    e.target.value = '';
   };
   reader.readAsText(file);
-  e.target.value = '';
 });
 
 /* ═══════════════════════════════════════════════════════════════
    6. INIT
    ═══════════════════════════════════════════════════════════════ */
+userPresets = loadPresetLibrary();
 initGame();
 initCandyFill();
 renderAll();
