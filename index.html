@@ -255,6 +255,22 @@
     .ctrl-btn.neutral { background: none; color: var(--text-muted); }
     .ctrl-btn.neutral:hover { background: var(--surface3); }
 
+    /* presets */
+    .preset-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    .preset-row select, .preset-row input[type=text] {
+      flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); padding: 4px 6px; font-size: 12px;
+    }
+    .preset-row select:focus, .preset-row input[type=text]:focus { outline: 1px solid var(--accent); }
+    .preset-btn {
+      font-size: 11px; padding: 4px 10px; background: var(--surface3); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .preset-btn:hover { background: #d0d8ee; }
+    .preset-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .preset-btn:disabled:hover { background: var(--surface3); }
+    .preset-btn.wide { flex: 1; }
+
     /* ── Round summary panel (inline, replaces piñata controls) ───── */
     #pinata-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 
@@ -603,6 +619,24 @@
   <h2>Control Panel</h2>
 
   <div class="ctrl-group">
+    <h3>Presets</h3>
+    <div class="preset-row">
+      <select id="preset-select"></select>
+      <button class="preset-btn" id="btn-load-preset">Load</button>
+      <button class="preset-btn" id="btn-delete-preset">Delete</button>
+    </div>
+    <div class="preset-row">
+      <input type="text" id="preset-name" placeholder="Preset name" maxlength="40">
+      <button class="preset-btn" id="btn-save-preset">Save</button>
+    </div>
+    <div class="preset-row">
+      <button class="preset-btn wide" id="btn-export-presets">Export</button>
+      <button class="preset-btn wide" id="btn-import-presets">Import</button>
+      <input type="file" id="import-file" accept=".json,application/json" hidden>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
     <h3>Game Setup</h3>
     <div class="ctrl-row">
       <span class="ctrl-label">Players</span>
@@ -758,6 +792,39 @@ const DEFAULTS = {
 const config        = structuredClone(DEFAULTS);
 const pendingConfig = structuredClone(DEFAULTS);
 
+// Preset library — built-in presets are baked in here; user presets live in
+// localStorage under PRESET_STORAGE_KEY. A preset is { name, config }.
+const PRESET_STORAGE_KEY = 'pinata-panic-presets';
+
+const SEED_PRESETS = [
+  { name: 'Default Tuning', config: structuredClone(DEFAULTS) },
+  {
+    name: 'Fast Game',
+    config: {
+      ...structuredClone(DEFAULTS),
+      totalRounds: 1,
+      candyPerRound: 25,
+      minTurns: 8,
+      maxTurns: 8,
+      finalBreakStartTurn: 5,
+      phases: [
+        { startTurn: 1, endTurn: 4, minCandy: 1, maxCandy: 3 },
+        { startTurn: 5, endTurn: 8, minCandy: 2, maxCandy: 4 },
+      ],
+    },
+  },
+  {
+    name: 'High Chaos',
+    config: {
+      ...structuredClone(DEFAULTS),
+      candyPerRound: 100,
+      numCandyColors: 5,
+      dropChance: 0.8,
+      licoricePickupChance: 0.2,
+    },
+  },
+];
+
 function getActiveColors(cfg) {
   const n = cfg.numCandyColors ?? 5;
   const nonLicorice = ['blue', 'green', 'pink', 'yellow'];
@@ -819,6 +886,58 @@ function randInt(min, max) {
 function escHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+/* ── Preset library ──────────────────────────────────────────── */
+// Fills missing/invalid keys from DEFAULTS so a corrupt or outdated preset
+// can never put the running game into a broken state.
+function sanitizeConfig(raw) {
+  const clean = structuredClone(DEFAULTS);
+  if (!raw || typeof raw !== 'object') return clean;
+  for (const key of Object.keys(DEFAULTS)) {
+    if (key === 'phases') continue;
+    const v = raw[key];
+    if (v !== null && v !== undefined && typeof v === typeof DEFAULTS[key]) clean[key] = v;
+  }
+  if (Array.isArray(raw.phases)) {
+    const fields = ['startTurn', 'endTurn', 'minCandy', 'maxCandy'];
+    const phases = raw.phases
+      .filter(p => p && fields.every(f => Number.isFinite(p[f])))
+      .map(p => ({ startTurn: p.startTurn, endTurn: p.endTurn, minCandy: p.minCandy, maxCandy: p.maxCandy }));
+    if (phases.length) clean.phases = phases;
+  }
+  return clean;
+}
+
+function loadPresetLibrary() {
+  try {
+    const raw = localStorage.getItem(PRESET_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(p => p && typeof p.name === 'string' && p.config)
+      .map(p => ({ name: p.name, config: sanitizeConfig(p.config) }));
+  } catch {
+    return [];
+  }
+}
+
+function savePresetLibrary() {
+  try {
+    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(userPresets));
+  } catch (e) {
+    alert('Could not save presets: ' + e.message);
+  }
+}
+
+function getAllPresets() {
+  return [
+    ...SEED_PRESETS.map(p => ({ name: p.name, config: p.config, builtin: true })),
+    ...userPresets.map(p => ({ name: p.name, config: p.config, builtin: false })),
+  ];
+}
+
+let userPresets = loadPresetLibrary();
 
 function buildCandyPool() {
   const colors = getActiveColors(config);
@@ -1304,8 +1423,35 @@ function renderControlPanel() {
   if (cbGoalBC && document.activeElement !== cbGoalBC) cbGoalBC.checked = pendingConfig.goalBCShareColor;
 
   renderPhaseList();
+  renderPresetControls();
 
   document.getElementById('pending-banner').classList.toggle('visible', hasPendingChanges());
+}
+
+function renderPresetControls() {
+  const sel = document.getElementById('preset-select');
+  if (sel && document.activeElement !== sel) {
+    const prev = sel.value;
+    sel.innerHTML = '';
+    const all = getAllPresets();
+    const addGroup = (label, presets) => {
+      if (!presets.length) return;
+      const og = document.createElement('optgroup');
+      og.label = label;
+      presets.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = (p.builtin ? 'builtin:' : 'user:') + p.name;
+        opt.textContent = p.name;
+        og.appendChild(opt);
+      });
+      sel.appendChild(og);
+    };
+    addGroup('Built-in', all.filter(p => p.builtin));
+    addGroup('My presets', all.filter(p => !p.builtin));
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  }
+  const delBtn = document.getElementById('btn-delete-preset');
+  if (delBtn) delBtn.disabled = !sel || !sel.value.startsWith('user:');
 }
 
 function renderPhaseList() {
@@ -1883,6 +2029,103 @@ document.getElementById('btn-load-defaults').addEventListener('click', () => {
   initGame();
   document.getElementById('event-log').innerHTML = '';
   renderAll();
+});
+
+/* ── Presets ─────────────────────────────────────────────────── */
+function selectedPreset() {
+  const sel = document.getElementById('preset-select');
+  if (!sel || !sel.value) return null;
+  const builtin = sel.value.startsWith('builtin:');
+  const name = sel.value.slice(builtin ? 8 : 5);
+  return (builtin ? SEED_PRESETS : userPresets).find(p => p.name === name) || null;
+}
+
+document.getElementById('btn-load-preset').addEventListener('click', () => {
+  if (state.uiPhase === 'suspense') return;
+  const preset = selectedPreset();
+  if (!preset) { alert('No preset selected.'); return; }
+  const cfg = sanitizeConfig(preset.config);
+  Object.assign(config,        structuredClone(cfg));
+  Object.assign(pendingConfig, structuredClone(cfg));
+  initGame();
+  document.getElementById('event-log').innerHTML = '';
+  renderAll();
+});
+
+document.getElementById('btn-save-preset').addEventListener('click', () => {
+  const input = document.getElementById('preset-name');
+  const name = input.value.trim();
+  if (!name) { alert('Enter a name for the preset.'); return; }
+  if (SEED_PRESETS.some(p => p.name === name)) {
+    alert(`"${name}" is a built-in preset name — choose a different name.`);
+    return;
+  }
+  const existing = userPresets.find(p => p.name === name);
+  if (existing) {
+    if (!confirm(`Overwrite preset "${name}"?`)) return;
+    existing.config = structuredClone(pendingConfig);
+  } else {
+    userPresets.push({ name, config: structuredClone(pendingConfig) });
+  }
+  savePresetLibrary();
+  input.value = '';
+  renderAll();
+  document.getElementById('preset-select').value = 'user:' + name;
+});
+
+document.getElementById('btn-delete-preset').addEventListener('click', () => {
+  const sel = document.getElementById('preset-select');
+  if (!sel.value.startsWith('user:')) return;
+  const name = sel.value.slice(5);
+  if (!confirm(`Delete preset "${name}"?`)) return;
+  userPresets = userPresets.filter(p => p.name !== name);
+  savePresetLibrary();
+  renderAll();
+});
+
+document.getElementById('btn-export-presets').addEventListener('click', () => {
+  const data = JSON.stringify({ version: 1, presets: userPresets }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pinata-panic-presets.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('btn-import-presets').addEventListener('click', () => {
+  document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const incoming = Array.isArray(parsed) ? parsed : parsed.presets;
+      if (!Array.isArray(incoming)) throw new Error('no presets array found');
+      let merged = 0, skipped = 0;
+      for (const p of incoming) {
+        if (!p || typeof p.name !== 'string' || !p.config ||
+            SEED_PRESETS.some(s => s.name === p.name)) { skipped++; continue; }
+        const cfg = sanitizeConfig(p.config);
+        const existing = userPresets.find(u => u.name === p.name);
+        if (existing) existing.config = cfg;
+        else userPresets.push({ name: p.name, config: cfg });
+        merged++;
+      }
+      savePresetLibrary();
+      renderAll();
+      alert(`Imported ${merged} preset(s)${skipped ? `, skipped ${skipped}` : ''}.`);
+    } catch (err) {
+      alert('Could not import presets: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 });
 
 /* ═══════════════════════════════════════════════════════════════
