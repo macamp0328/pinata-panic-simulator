@@ -14,6 +14,7 @@
       --surface3: #e2e8f4;   /* buttons, inactive turn dots            */
       --accent:   #e94560;
       --accent2:  #d4820a;   /* darker orange for better contrast on light */
+      --good:     #2aa876;   /* green for "fair / balanced" verdicts */
       --text:     #1a2240;
       --text-muted: #5870a0;
       --border:   #c4cfe8;   /* clearly visible dividers               */
@@ -104,6 +105,135 @@
     .batch-config {
       font-size: 11px; color: var(--text-muted); margin-top: 14px; line-height: 1.7;
       border-top: 1px solid var(--border); padding-top: 10px;
+    }
+
+    /* ── Streaming dashboard additions ─────────────────────────────── */
+    .batch-progress > div { transition: width .25s ease-out; }
+    .batch-meta {
+      display: flex; justify-content: space-between; gap: 16px;
+      font-size: 11px; color: var(--text-muted); margin: -4px 0 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .batch-meta .right { display: flex; gap: 16px; }
+    .batch-reset {
+      background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: var(--radius); padding: 8px 12px; cursor: pointer; font: inherit;
+    }
+    .batch-reset:hover:not(:disabled) { color: var(--text); border-color: var(--text-muted); }
+    .batch-reset:disabled { opacity: .4; cursor: default; }
+
+    .batch-verdict {
+      background: linear-gradient(180deg, #ffffff 0%, var(--surface2) 100%);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px; margin-bottom: 12px;
+    }
+    .verdict-sparks { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+    .verdict-spark {
+      flex: 1 1 200px; min-width: 180px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 8px 10px;
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 10px;
+    }
+    .verdict-spark .lbl {
+      grid-column: 1 / -1; font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--text-muted);
+    }
+    .verdict-spark svg { width: 100%; height: 28px; display: block; overflow: visible; }
+    .verdict-spark .val {
+      font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;
+      color: var(--text); white-space: nowrap; justify-self: end;
+    }
+    .verdict-spark .val.good { color: var(--good); }
+    .verdict-spark .val.warn { color: var(--accent2); }
+    .verdict-spark .val.bad  { color: var(--accent); }
+
+    .verdict-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .verdict-pill {
+      font-size: 12px; line-height: 1.35; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface);
+      display: inline-flex; align-items: center; gap: 6px; color: var(--text);
+    }
+    .verdict-pill .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .verdict-pill.good { border-color: rgba(42,168,118,.45); background: rgba(42,168,118,.08); }
+    .verdict-pill.good .dot { background: var(--good); }
+    .verdict-pill.warn { border-color: rgba(212,130,10,.45); background: rgba(212,130,10,.08); }
+    .verdict-pill.warn .dot { background: var(--accent2); }
+    .verdict-pill.bad  { border-color: rgba(233,69,96,.45); background: rgba(233,69,96,.08); }
+    .verdict-pill.bad  .dot { background: var(--accent); }
+
+    /* Stagger-in animation, only on first render per run. */
+    @keyframes batchCardIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .batch-grid.is-initial .batch-card { animation: batchCardIn .32s ease-out both; }
+    .batch-grid.is-initial .batch-card:nth-child(1) { animation-delay: 0ms; }
+    .batch-grid.is-initial .batch-card:nth-child(2) { animation-delay: 80ms; }
+    .batch-grid.is-initial .batch-card:nth-child(3) { animation-delay: 160ms; }
+    .batch-grid.is-initial .batch-card:nth-child(4) { animation-delay: 240ms; }
+    .batch-grid.is-initial .batch-card:nth-child(5) { animation-delay: 320ms; }
+
+    /* Smooth bar transitions inside batch cards. */
+    .batch-bar-fill { transition: width .35s ease-out, background .2s; }
+
+    /* Wilson-CI whisker overlay on seat-win bars. */
+    .batch-bar-track { position: relative; }
+    .batch-whisker {
+      position: absolute; top: 50%; height: 9px; transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .batch-whisker::before,
+    .batch-whisker::after {
+      content: ''; position: absolute; top: 0; bottom: 0; width: 1.5px;
+      background: rgba(26,34,64,.62);
+    }
+    .batch-whisker::before { left: 0; }
+    .batch-whisker::after  { right: 0; }
+    .batch-whisker .bar {
+      position: absolute; left: 0; right: 0; top: 50%; height: 1.5px;
+      transform: translateY(-50%); background: rgba(26,34,64,.62);
+    }
+    .batch-whisker.biased::before,
+    .batch-whisker.biased::after,
+    .batch-whisker.biased .bar { background: var(--accent); }
+    .batch-fair-line {
+      position: absolute; top: -3px; bottom: -3px; width: 1.5px;
+      background: rgba(26,34,64,.5); pointer-events: none;
+    }
+
+    /* Score-distribution density curve. */
+    .batch-density { width: 100%; height: 96px; display: block; overflow: visible; }
+    .batch-density .area { fill: var(--accent); fill-opacity: .18; }
+    .batch-density .line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+    .batch-density .iqr  { fill: var(--accent); fill-opacity: .22; }
+    .batch-density .median { stroke: var(--text); stroke-width: 1.5; }
+    .batch-density .axis  { stroke: var(--border); stroke-width: 1; }
+    .batch-density .tick  { fill: var(--text-muted); font-size: 10px; }
+
+    /* Margin-buckets — segmented horizontal bar. */
+    .batch-segbar {
+      display: flex; width: 100%; height: 14px; border-radius: 7px; overflow: hidden;
+      background: var(--surface3); border: 1px solid var(--border); margin-top: 8px;
+    }
+    .batch-segbar > span { transition: flex-grow .35s ease-out; }
+    .batch-segbar-key { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .batch-segbar-key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+    /* Trajectory line chart card. */
+    .batch-traj { width: 100%; height: 140px; display: block; overflow: visible; }
+    .batch-traj .band { fill: var(--accent2); fill-opacity: .14; }
+    .batch-traj .leader  { fill: none; stroke: var(--accent2); stroke-width: 2; }
+    .batch-traj .trailer { fill: none; stroke: var(--text-muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .batch-traj .dot { fill: var(--surface); stroke-width: 1.5; }
+    .batch-traj .axis { stroke: var(--border); stroke-width: 1; }
+    .batch-traj .tick { fill: var(--text-muted); font-size: 10px; }
+    .batch-traj-legend { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .batch-traj-legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 5px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .batch-card, .batch-progress > div, .batch-bar-fill, .batch-segbar > span {
+        animation: none !important; transition: none !important;
+      }
     }
 
     h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); margin-bottom: 10px; }
@@ -709,10 +839,17 @@
     <button class="batch-preset" data-runs="100">100 games</button>
     <button class="batch-preset" data-runs="1000">1,000 games</button>
     <button class="batch-preset" data-runs="10000">10,000 games</button>
+    <button class="batch-reset" id="btn-batch-reset" disabled>Reset</button>
     <button class="batch-csv" id="btn-batch-csv" disabled>Download CSV</button>
   </div>
   <div class="batch-progress"><div id="batch-progress-fill"></div></div>
-  <div id="batch-status"></div>
+  <div class="batch-meta">
+    <span id="batch-status"></span>
+    <span class="right">
+      <span id="batch-rate"></span>
+      <span id="batch-eta"></span>
+    </span>
+  </div>
   <div id="batch-dashboard"></div>
 </div>
 
@@ -999,6 +1136,9 @@ const state = {
   batchRunning: false,      // true while a batch is in progress
   batchProgress: 0,         // games completed in the current run
   batchTarget: 0,           // total games requested for the current run
+  batchStartTime: 0,        // performance.now() when the current run started — drives ETA/rate
+  batchConvergence: { fairness: [], margin: [], leadChanges: [] }, // sparkline series, one point per chunk
+  batchFirstRender: false,  // true on first dashboard render of a run — triggers card stagger-in
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1339,12 +1479,16 @@ function analyzeGame(g) {
   const margin = sorted[0] - (sorted[1] ?? sorted[0]);
 
   // Cumulative leader(s) after each round → lead changes + early-leader test.
+  // Also capture per-round leader/trailer cumulative scores for trajectory chart.
   const cum = new Array(n).fill(0);
   const leaders = [];
+  const trajectory = []; // [{ leader, trailer }] cumulative, per round
   for (const rs of g.roundScores) {
     rs.forEach((s, i) => { cum[i] += s.total; });
     const cmax = Math.max(...cum);
+    const cmin = Math.min(...cum);
     leaders.push(cum.map((c, i) => (c === cmax ? i : -1)).filter(i => i >= 0));
+    trajectory.push({ leader: cmax, trailer: cmin });
   }
   let leadChanges = 0;
   for (let r = 1; r < leaders.length; r++) {
@@ -1361,12 +1505,16 @@ function analyzeGame(g) {
       goals.favorite += s.favorite; goals.licoricePenalty += s.licoricePenalty;
     }
   }
-  return { scores: g.finalScores, winners, margin, leadChanges, wireToWire, goals };
+  return { scores: g.finalScores, winners, margin, leadChanges, wireToWire, goals, trajectory };
 }
 
 // Run n games in setTimeout-chunked batches so the UI can show progress.
+// onProgress is called at the end of each chunk with (done, total, snapshot).
+// snapshot is a live view of `agg` whose `.n` reflects games completed so far —
+// safe to pass into renderBatchDashboard() for the streaming dashboard.
 function runBatch(cfg, n, onProgress, onDone) {
   const records = [];
+  const rounds = cfg.totalRounds;
   const agg = {
     n, numPlayers: cfg.numPlayers, cfg: structuredClone(cfg),
     winsPerSeat:     new Array(cfg.numPlayers).fill(0),
@@ -1374,9 +1522,12 @@ function runBatch(cfg, n, onProgress, onDone) {
     tieGames: 0,
     scoreTally:  {},   // final score value → how many player-results landed there
     marginTally: {},   // margin value → game count
+    marginSum: 0,      // running sum of victory margins
     goalSum: { goalA: 0, goalB: 0, goalC: 0, favorite: 0, licoricePenalty: 0 },
     wireToWire: 0,
     leadChangeSum: 0,
+    // Per-round cumulative leader/trailer sums for the trajectory chart.
+    trajectory: Array.from({ length: rounds }, () => ({ leaderSum: 0, trailerSum: 0, count: 0 })),
     records,
   };
   let done = 0;
@@ -1391,11 +1542,20 @@ function runBatch(cfg, n, onProgress, onDone) {
       else agg.soleWinsPerSeat[a.winners[0]]++;
       a.scores.forEach(s => { agg.scoreTally[s] = (agg.scoreTally[s] ?? 0) + 1; });
       agg.marginTally[a.margin] = (agg.marginTally[a.margin] ?? 0) + 1;
+      agg.marginSum += a.margin;
       for (const k in agg.goalSum) agg.goalSum[k] += a.goals[k];
       if (a.wireToWire) agg.wireToWire++;
       agg.leadChangeSum += a.leadChanges;
+      for (let r = 0; r < a.trajectory.length && r < agg.trajectory.length; r++) {
+        agg.trajectory[r].leaderSum  += a.trajectory[r].leader;
+        agg.trajectory[r].trailerSum += a.trajectory[r].trailer;
+        agg.trajectory[r].count++;
+      }
     }
-    onProgress(done, n);
+    // Build a "partial" snapshot — agg with .n overridden to games-completed —
+    // so streaming renders divide by the correct denominator.
+    const snapshot = Object.assign({}, agg, { n: done, partial: done < n });
+    onProgress(done, n, snapshot);
     if (done < n) setTimeout(step, 0);
     else onDone(agg);
   }
@@ -1432,6 +1592,8 @@ function renderBatch() {
   // Run controls
   document.querySelectorAll('.batch-preset').forEach(b => { b.disabled = state.batchRunning; });
   document.getElementById('btn-batch-csv').disabled = state.batchRunning || !state.batchResult;
+  const resetBtn = document.getElementById('btn-batch-reset');
+  if (resetBtn) resetBtn.disabled = state.batchRunning || (!state.batchResult && state.batchProgress === 0);
   updateBatchProgress();
   renderBatchDashboard();
 }
@@ -1439,16 +1601,281 @@ function renderBatch() {
 function updateBatchProgress() {
   const fill   = document.getElementById('batch-progress-fill');
   const status = document.getElementById('batch-status');
+  const rate   = document.getElementById('batch-rate');
+  const eta    = document.getElementById('batch-eta');
   if (state.batchRunning) {
     fill.style.width = fmtPct(state.batchProgress, state.batchTarget);
     status.textContent = `Simulating… ${state.batchProgress.toLocaleString()} / ${state.batchTarget.toLocaleString()} games`;
+    const elapsedMs = performance.now() - state.batchStartTime;
+    if (state.batchProgress > 0 && elapsedMs > 50) {
+      const gps = state.batchProgress / (elapsedMs / 1000);
+      const remaining = state.batchTarget - state.batchProgress;
+      const etaSec = remaining / Math.max(gps, 1);
+      rate.textContent = `${Math.round(gps).toLocaleString()} games/sec`;
+      eta.textContent = remaining > 0 ? `ETA ${formatEta(etaSec)}` : '';
+    } else {
+      rate.textContent = '';
+      eta.textContent = '';
+    }
   } else if (state.batchResult) {
     fill.style.width = '100%';
+    const elapsedMs = state.batchStartTime ? Math.max(0, performance.now() - state.batchStartTime) : 0;
     status.textContent = `Done — ${state.batchResult.n.toLocaleString()} games simulated.`;
+    rate.textContent = elapsedMs > 0 ? `${(elapsedMs / 1000).toFixed(2)}s total` : '';
+    eta.textContent = '';
   } else {
     fill.style.width = '0%';
     status.textContent = 'Pick a run size above. Settings are read live from the Control Panel.';
+    rate.textContent = '';
+    eta.textContent = '';
   }
+}
+
+function formatEta(sec) {
+  if (!isFinite(sec) || sec < 0) return '—';
+  if (sec < 1) return '<1s';
+  if (sec < 60) return Math.ceil(sec) + 's';
+  const m = Math.floor(sec / 60), s = Math.ceil(sec % 60);
+  return `${m}m ${s.toString().padStart(2, '0')}s`;
+}
+
+// Wilson 95% CI half-width for a proportion (k/n) — well-behaved at small n
+// and when k is 0 or n. Returns { lo, hi } in 0..1.
+function wilsonCI(k, n, z = 1.96) {
+  if (n <= 0) return { lo: 0, hi: 1 };
+  const p = k / n;
+  const z2 = z * z;
+  const denom = 1 + z2 / n;
+  const center = (p + z2 / (2 * n)) / denom;
+  const half = (z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n))) / denom;
+  return { lo: Math.max(0, center - half), hi: Math.min(1, center + half) };
+}
+
+// Render an inline-SVG sparkline polyline given a numeric series.
+// Uses a 0..100 viewBox for x and rescales y to series min/max with padding.
+function sparkline(series, color) {
+  if (!series || series.length === 0) {
+    return '<svg viewBox="0 0 100 28" preserveAspectRatio="none"></svg>';
+  }
+  if (series.length === 1) {
+    const y = 14;
+    return `<svg viewBox="0 0 100 28" preserveAspectRatio="none">
+      <circle cx="50" cy="${y}" r="2" fill="${color}"/>
+    </svg>`;
+  }
+  let lo = Infinity, hi = -Infinity;
+  for (const v of series) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  const range = hi - lo || 1;
+  const pad = 3;
+  const pts = series.map((v, i) => {
+    const x = (i / (series.length - 1)) * 100;
+    const y = pad + (1 - (v - lo) / range) * (28 - 2 * pad);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  });
+  const lastX = 100, lastY = pts[pts.length - 1].split(',')[1];
+  return `<svg viewBox="0 0 100 28" preserveAspectRatio="none">
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6"
+              stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${lastX}" cy="${lastY}" r="2" fill="${color}" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+
+// Build a smooth density curve from a frequency map { value: count } for
+// integer score values. Returns an SVG <path> string and median/IQR ticks.
+function densityCurve(tally) {
+  const W = 320, H = 96, padT = 8, padB = 22, padL = 6, padR = 6;
+  const keys = Object.keys(tally).map(Number).sort((a, b) => a - b);
+  if (keys.length === 0) {
+    return `<svg class="batch-density" viewBox="0 0 ${W} ${H}"></svg>`;
+  }
+  const minV = keys[0], maxV = keys[keys.length - 1];
+  const span = Math.max(1, maxV - minV);
+
+  // Build flat expanded array for percentile calcs.
+  const expanded = [];
+  let totalCount = 0;
+  for (const v of keys) { totalCount += tally[v]; expanded.push([v, tally[v]]); }
+  const pctile = (q) => {
+    const target = q * totalCount;
+    let cum = 0;
+    for (const [v, c] of expanded) {
+      cum += c;
+      if (cum >= target) return v;
+    }
+    return maxV;
+  };
+  const q1 = pctile(0.25), median = pctile(0.5), q3 = pctile(0.75);
+
+  // Kernel-smoothed density across the integer range.
+  const xs = [];
+  for (let v = minV; v <= maxV; v++) xs.push(v);
+  const bandwidth = Math.max(0.7, span / 12);
+  const densAt = (x) => {
+    let s = 0;
+    for (const v of keys) {
+      const dx = (x - v) / bandwidth;
+      s += tally[v] * Math.exp(-0.5 * dx * dx);
+    }
+    return s;
+  };
+  const dens = xs.map(densAt);
+  const dmax = Math.max(...dens, 1e-9);
+
+  const xScale = (v) => padL + (span === 0 ? (W - padL - padR) / 2 : ((v - minV) / span) * (W - padL - padR));
+  const yScale = (d) => padT + (1 - d / dmax) * (H - padT - padB);
+
+  // Area path: from baseline up over points and back.
+  const pts = xs.map((v, i) => `${xScale(v).toFixed(2)},${yScale(dens[i]).toFixed(2)}`);
+  const baselineY = (H - padB).toFixed(2);
+  const areaPath = `M ${xScale(xs[0]).toFixed(2)},${baselineY} L ${pts.join(' L ')} L ${xScale(xs[xs.length - 1]).toFixed(2)},${baselineY} Z`;
+  const linePath = `M ${pts.join(' L ')}`;
+
+  // IQR shaded rectangle + median tick.
+  const xq1 = xScale(q1), xq3 = xScale(q3), xMed = xScale(median);
+  const rectY = padT, rectH = H - padT - padB;
+
+  // Axis labels every ~25% across the range.
+  const labelVals = [];
+  for (let i = 0; i <= 4; i++) {
+    labelVals.push(minV + Math.round((span * i) / 4));
+  }
+  const labels = labelVals.map(v => {
+    const x = xScale(v);
+    return `<text class="tick" x="${x.toFixed(1)}" y="${(H - 6)}" text-anchor="middle">${v}</text>`;
+  }).join('');
+
+  return `<svg class="batch-density" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <rect class="iqr" x="${xq1.toFixed(2)}" y="${rectY}" width="${(xq3 - xq1).toFixed(2)}" height="${rectH}"/>
+    <path class="area" d="${areaPath}"/>
+    <path class="line" d="${linePath}" vector-effect="non-scaling-stroke"/>
+    <line class="median" x1="${xMed.toFixed(2)}" x2="${xMed.toFixed(2)}" y1="${rectY}" y2="${(rectY + rectH).toFixed(2)}" vector-effect="non-scaling-stroke"/>
+    <line class="axis" x1="${padL}" x2="${W - padR}" y1="${baselineY}" y2="${baselineY}" vector-effect="non-scaling-stroke"/>
+    ${labels}
+  </svg>`;
+}
+
+// Build the round-by-round leader/trailer trajectory SVG.
+function trajectoryChart(traj) {
+  const W = 320, H = 140, padT = 14, padB = 26, padL = 28, padR = 12;
+  const rounds = traj.length;
+  if (rounds === 0) return `<svg class="batch-traj" viewBox="0 0 ${W} ${H}"></svg>`;
+  const leaderAvg  = traj.map(r => r.count > 0 ? r.leaderSum  / r.count : 0);
+  const trailerAvg = traj.map(r => r.count > 0 ? r.trailerSum / r.count : 0);
+  const lo = Math.min(0, ...trailerAvg);
+  const hi = Math.max(1, ...leaderAvg);
+  const range = hi - lo || 1;
+  const xs = traj.map((_, i) => {
+    if (rounds === 1) return (W - padL - padR) / 2 + padL;
+    return padL + (i / (rounds - 1)) * (W - padL - padR);
+  });
+  const yScale = (v) => padT + (1 - (v - lo) / range) * (H - padT - padB);
+  const leaderPts  = leaderAvg.map((v, i) => `${xs[i].toFixed(2)},${yScale(v).toFixed(2)}`);
+  const trailerPts = trailerAvg.map((v, i) => `${xs[i].toFixed(2)},${yScale(v).toFixed(2)}`);
+  // Band polygon between leader and trailer.
+  const bandPts = [
+    ...leaderPts,
+    ...trailerPts.slice().reverse(),
+  ].join(' ');
+  // Y-axis ticks (0, mid, max).
+  const yTicks = [lo, (lo + hi) / 2, hi].map(v => {
+    const y = yScale(v);
+    return `
+      <line class="axis" x1="${padL}" x2="${W - padR}" y1="${y.toFixed(2)}" y2="${y.toFixed(2)}" opacity=".5" vector-effect="non-scaling-stroke"/>
+      <text class="tick" x="${padL - 4}" y="${(y + 3).toFixed(2)}" text-anchor="end">${v.toFixed(1)}</text>
+    `;
+  }).join('');
+  const xLabels = traj.map((_, i) =>
+    `<text class="tick" x="${xs[i].toFixed(2)}" y="${(H - 8)}" text-anchor="middle">R${i + 1}</text>`
+  ).join('');
+  const leaderDots = leaderAvg.map((v, i) =>
+    `<circle class="dot" cx="${xs[i].toFixed(2)}" cy="${yScale(v).toFixed(2)}" r="3" stroke="var(--accent2)"/>`
+  ).join('');
+  const trailerDots = trailerAvg.map((v, i) =>
+    `<circle class="dot" cx="${xs[i].toFixed(2)}" cy="${yScale(v).toFixed(2)}" r="2.5" stroke="var(--text-muted)"/>`
+  ).join('');
+  return `<svg class="batch-traj" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    ${yTicks}
+    <polygon class="band" points="${bandPts}"/>
+    <polyline class="trailer" points="${trailerPts.join(' ')}" vector-effect="non-scaling-stroke"/>
+    <polyline class="leader" points="${leaderPts.join(' ')}" vector-effect="non-scaling-stroke"/>
+    ${trailerDots}${leaderDots}
+    ${xLabels}
+  </svg>`;
+}
+
+// Distill the aggregate into 3–4 plain-English verdict pills.
+// Returns [{level, text}, ...] where level ∈ {good, warn, bad}.
+function summarizeBatch(r) {
+  const n = r.n, np = r.numPlayers;
+  const pills = [];
+  if (n <= 0) return pills;
+
+  // Fairness — use Wilson CI on each seat's win rate vs the seat mean.
+  const fairShare = r.winsPerSeat.reduce((a, b) => a + b, 0) / np / n;
+  let biasedSeat = -1, biasedDelta = 0, biasedDir = '';
+  for (let i = 0; i < np; i++) {
+    const ci = wilsonCI(r.winsPerSeat[i], n);
+    const p = r.winsPerSeat[i] / n;
+    // CI excludes the fair share → real bias for this seat.
+    if (ci.lo > fairShare || ci.hi < fairShare) {
+      const delta = Math.abs(p - fairShare);
+      if (delta > biasedDelta) {
+        biasedDelta = delta; biasedSeat = i; biasedDir = p > fairShare ? 'high' : 'low';
+      }
+    }
+  }
+  if (biasedSeat >= 0) {
+    const p = (r.winsPerSeat[biasedSeat] / n * 100).toFixed(1);
+    const fair = (fairShare * 100).toFixed(1);
+    pills.push({ level: 'bad',
+      text: `Seat ${biasedSeat + 1} biased ${biasedDir} — wins ${p}% vs fair ${fair}%.` });
+  } else if (n >= 200) {
+    pills.push({ level: 'good',
+      text: `Fair — all seats within sampling noise of ${(fairShare * 100).toFixed(1)}%.` });
+  }
+
+  // Drama — wire-to-wire % and avg lead changes.
+  const wirePct = r.wireToWire / n;
+  const leadAvg = r.leadChangeSum / n;
+  if (wirePct > 0.75 && leadAvg < 0.4) {
+    pills.push({ level: 'warn',
+      text: `Sticky early lead — ${(wirePct * 100).toFixed(0)}% wire-to-wire, only ${leadAvg.toFixed(2)} lead changes/game.` });
+  } else if (leadAvg >= 1.0) {
+    pills.push({ level: 'good',
+      text: `Dramatic — ${leadAvg.toFixed(2)} lead changes per game on average.` });
+  } else if (wirePct < 0.45) {
+    pills.push({ level: 'good',
+      text: `Comebacks happen — only ${(wirePct * 100).toFixed(0)}% wire-to-wire winners.` });
+  }
+
+  // Goal balance — share of positive-source points (excluding licorice penalty).
+  const positive = ['goalA', 'goalB', 'goalC', 'favorite']
+    .map(k => Math.max(0, r.goalSum[k]));
+  const posTotal = positive.reduce((a, b) => a + b, 0) || 1;
+  const shares = positive.map(v => v / posTotal);
+  const maxShare = Math.max(...shares);
+  const minShare = Math.min(...shares);
+  const maxIdx = shares.indexOf(maxShare);
+  const goalLabels = ['Goal A', 'Goal B', 'Goal C', 'Favorite'];
+  if (maxShare > 0.45) {
+    pills.push({ level: 'warn',
+      text: `${goalLabels[maxIdx]} dominates — ${(maxShare * 100).toFixed(0)}% of awarded points.` });
+  } else if (maxShare - minShare < 0.12) {
+    pills.push({ level: 'good',
+      text: `Scoring sources balanced — top vs bottom within ${((maxShare - minShare) * 100).toFixed(0)} pts.` });
+  }
+
+  // Closeness — avg margin & blowouts.
+  const avgMargin = r.marginSum / n;
+  if (avgMargin >= 3) {
+    pills.push({ level: 'warn',
+      text: `Runaway-prone — average victory margin ${avgMargin.toFixed(1)} pts.` });
+  } else if (avgMargin <= 1.3) {
+    pills.push({ level: 'good',
+      text: `Tight games — average margin only ${avgMargin.toFixed(1)} pts.` });
+  }
+
+  return pills.slice(0, 4);
 }
 
 // One labelled horizontal bar inside a metric card. A true 0% value renders
@@ -1463,73 +1890,118 @@ function batchBar(label, fillPct, hexColor, valueText) {
   </div>`;
 }
 
-function renderBatchDashboard() {
+// Render dashboard from either a final batchResult or a mid-run snapshot.
+function renderBatchDashboard(snapshot) {
   const host = document.getElementById('batch-dashboard');
-  const r = state.batchResult;
-  if (!r) {
+  const r = snapshot || state.batchResult;
+  if (!r || r.n <= 0) {
     host.innerHTML = '<div class="batch-empty">No results yet — run a simulation to see fairness, balance, and drama metrics.</div>';
     return;
   }
   const n = r.n, np = r.numPlayers;
+  const partial = !!r.partial;
 
-  // ── Card 1: Win distribution by seat ──────────────────────────
-  // Wins count every tied winner, so the seat-win-rate total exceeds 100%.
-  // A fair game gives every seat the SAME rate — compare each seat to the
-  // mean of all seats, not to 100/np.
+  // ── Verdict strip: convergence sparklines + plain-English pills ──
+  const conv = state.batchConvergence;
+  const fairLast  = conv.fairness[conv.fairness.length - 1] ?? 0;
+  const marginLast = conv.margin[conv.margin.length - 1] ?? 0;
+  const leadLast  = conv.leadChanges[conv.leadChanges.length - 1] ?? 0;
+  const pills = summarizeBatch(r);
+  const pillsHtml = pills.length
+    ? pills.map(p => `<span class="verdict-pill ${p.level}"><span class="dot"></span>${escHtml(p.text)}</span>`).join('')
+    : `<span class="verdict-pill"><span class="dot" style="background:var(--text-muted);"></span>Gathering signal…</span>`;
+  const verdict = `<div class="batch-verdict">
+    <div class="verdict-sparks">
+      <div class="verdict-spark">
+        <span class="lbl">Seat fairness — max deviation</span>
+        ${sparkline(conv.fairness, '#e94560')}
+        <span class="val ${fairLast < 1.5 ? 'good' : (fairLast < 3 ? 'warn' : 'bad')}">±${fairLast.toFixed(2)} pts</span>
+      </div>
+      <div class="verdict-spark">
+        <span class="lbl">Avg victory margin</span>
+        ${sparkline(conv.margin, '#d4820a')}
+        <span class="val ${marginLast < 1.5 ? 'good' : (marginLast < 2.5 ? 'warn' : 'bad')}">${marginLast.toFixed(2)} pts</span>
+      </div>
+      <div class="verdict-spark">
+        <span class="lbl">Lead changes / game</span>
+        ${sparkline(conv.leadChanges, '#2aa876')}
+        <span class="val ${leadLast >= 1 ? 'good' : (leadLast >= 0.4 ? 'warn' : 'bad')}">${leadLast.toFixed(2)}</span>
+      </div>
+    </div>
+    <div class="verdict-pills">${pillsHtml}</div>
+  </div>`;
+
+  // ── Card 1: Win distribution by seat (with Wilson CI whiskers) ──
+  const fairShareP = r.winsPerSeat.reduce((a, b) => a + b, 0) / np / n; // proportion 0..1
   const winPcts = r.winsPerSeat.map(w => pct(w, n));
-  const fairShare = winPcts.reduce((a, b) => a + b, 0) / np;
-  let maxDev = 0;
+  const winBarScale = Math.max(...winPcts, fairShareP * 100, 1);
+  let biasedAnySeat = false;
   let winRows = '';
-  const winBarScale = Math.max(...winPcts, 1);
   for (let i = 0; i < np; i++) {
     const winP = winPcts[i];
-    maxDev = Math.max(maxDev, Math.abs(winP - fairShare));
-    winRows += batchBar(`Seat ${i + 1}`, pct(winP, winBarScale), 'var(--accent2)',
-      `${winP.toFixed(1)}%`);
+    const ci = wilsonCI(r.winsPerSeat[i], n);
+    const ciLoPct = ci.lo * 100, ciHiPct = ci.hi * 100;
+    const whiskerLeftPct  = pct(ciLoPct, winBarScale);
+    const whiskerRightPct = pct(ciHiPct, winBarScale);
+    const fairLinePct = pct(fairShareP * 100, winBarScale);
+    const seatBiased = ci.lo > fairShareP || ci.hi < fairShareP;
+    if (seatBiased) biasedAnySeat = true;
+    const barFillPct = pct(winP, winBarScale);
+    const minW = barFillPct > 0 ? 'min-width:2px;' : '';
+    winRows += `<div class="batch-bar-row">
+      <span>Seat ${i + 1}</span>
+      <span class="batch-bar-track">
+        <span class="batch-bar-fill" style="width:${barFillPct}%;${minW}background:var(--accent2);"></span>
+        <span class="batch-fair-line" style="left:${fairLinePct}%;" title="Fair share ${(fairShareP * 100).toFixed(1)}%"></span>
+        <span class="batch-whisker ${seatBiased ? 'biased' : ''}"
+              style="left:${whiskerLeftPct}%;width:${(whiskerRightPct - whiskerLeftPct).toFixed(2)}%;"
+              title="95% CI: ${ciLoPct.toFixed(1)}% – ${ciHiPct.toFixed(1)}%">
+          <span class="bar"></span>
+        </span>
+      </span>
+      <span class="batch-bar-val">${winP.toFixed(1)}%</span>
+    </div>`;
   }
-  // Flag bias only when the deviation exceeds statistical noise. A seat win
-  // rate is a proportion, so its sampling error shrinks with √n — a small run
-  // shows large deviations by chance alone. The noise band is ~3.5× the
-  // standard error, with a 3 pt floor for very large runs.
-  const p = fairShare / 100;
-  const se = Math.sqrt(p * (1 - p) / n) * 100;
-  const noiseBand = Math.max(3, 3.5 * se);
-  const biased = maxDev > noiseBand;
-  const winNote = biased
-    ? `<div class="batch-flag">⚠ Seat win rates deviate up to ${maxDev.toFixed(1)} pts from the seat average of ${fairShare.toFixed(1)}% — beyond the ±${noiseBand.toFixed(1)} pt noise band for ${n.toLocaleString()} games. Likely turn-order bias.</div>`
-    : `<div class="batch-ok">✓ Win rates are within ${maxDev.toFixed(1)} pts of the seat average (${fairShare.toFixed(1)}%) — inside the ±${noiseBand.toFixed(1)} pt noise band for ${n.toLocaleString()} games, so no detectable seat bias.</div>`;
+  const winNote = biasedAnySeat
+    ? `<div class="batch-flag">⚠ At least one seat's 95% confidence interval excludes the fair share (${(fairShareP * 100).toFixed(1)}%) — likely turn-order bias.</div>`
+    : `<div class="batch-ok">✓ Every seat's 95% confidence interval overlaps the fair share (${(fairShareP * 100).toFixed(1)}%) — no detectable bias.</div>`;
   const card1 = `<div class="batch-card">
     <h3>Win Distribution by Seat</h3>
     ${winRows}
-    <div class="batch-note">Wins count every tied winner. Tie games: ${fmtPct(r.tieGames, n)}.</div>
+    <div class="batch-note">Black whiskers show each seat's 95% Wilson CI; dark line marks the fair share. Tie games: ${fmtPct(r.tieGames, n)}.</div>
     ${winNote}
   </div>`;
 
-  // ── Card 2: Score spread & closeness ──────────────────────────
-  const scoreVals = Object.keys(r.scoreTally).map(Number).sort((a, b) => a - b);
-  const scoreMax = Math.max(...Object.values(r.scoreTally), 1);
-  const totalResults = np * n;
-  let scoreRows = '';
-  for (const v of scoreVals) {
-    const c = r.scoreTally[v];
-    scoreRows += batchBar(`${v} pts`, pct(c, scoreMax), 'var(--accent)',
-      fmtPct(c, totalResults));
-  }
+  // ── Card 2: Score spread density + margin segmented bar ──────
+  const avgMargin = r.marginSum / n;
   let tie = 0, close = 0, mid = 0, blow = 0;
   for (const [m, c] of Object.entries(r.marginTally)) {
     const mm = Number(m);
     if (mm === 0) tie += c; else if (mm === 1) close += c;
     else if (mm === 2) mid += c; else blow += c;
   }
-  let marginSum = 0;
-  for (const [m, c] of Object.entries(r.marginTally)) marginSum += Number(m) * c;
+  const seg = (count, color) => {
+    const g = Math.max(0, count);
+    return `<span style="flex-grow:${g}; background:${color};" title="${count.toLocaleString()} games"></span>`;
+  };
   const card2 = `<div class="batch-card">
     <h3>Score Spread &amp; Closeness</h3>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Final score frequency (all players)</div>
-    ${scoreRows}
-    <div class="batch-note">
-      Avg margin of victory: <strong style="color:var(--text);">${(marginSum / n).toFixed(2)} pts</strong><br>
-      Ties ${fmtPct(tie, n)} · Nail-biters (1) ${fmtPct(close, n)} · Close (2) ${fmtPct(mid, n)} · Blowouts (3+) ${fmtPct(blow, n)}
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Final score density (all players) — shaded band is IQR, dark line is median</div>
+    ${densityCurve(r.scoreTally)}
+    <div class="batch-note" style="margin-top:10px;">
+      Avg margin of victory: <strong style="color:var(--text);">${avgMargin.toFixed(2)} pts</strong>
+    </div>
+    <div class="batch-segbar">
+      ${seg(tie,   '#5870a0')}
+      ${seg(close, '#2aa876')}
+      ${seg(mid,   '#d4820a')}
+      ${seg(blow,  '#e94560')}
+    </div>
+    <div class="batch-segbar-key">
+      <span><i style="background:#5870a0"></i>Ties ${fmtPct(tie, n)}</span>
+      <span><i style="background:#2aa876"></i>Nail-biter (1) ${fmtPct(close, n)}</span>
+      <span><i style="background:#d4820a"></i>Close (2) ${fmtPct(mid, n)}</span>
+      <span><i style="background:#e94560"></i>Blowout (3+) ${fmtPct(blow, n)}</span>
     </div>
   </div>`;
 
@@ -1575,6 +2047,17 @@ function renderBatchDashboard() {
     </div>
   </div>`;
 
+  // ── Card 5: Round-by-round trajectory ─────────────────────────
+  const card5 = `<div class="batch-card" style="grid-column: 1 / -1;">
+    <h3>Round-by-Round Trajectory</h3>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Average cumulative leader vs trailer score over rounds — wider band = more decisive games</div>
+    ${trajectoryChart(r.trajectory)}
+    <div class="batch-traj-legend">
+      <span><i style="background:var(--accent2)"></i>Leader (avg)</span>
+      <span><i style="background:var(--text-muted)"></i>Trailer (avg)</span>
+    </div>
+  </div>`;
+
   const c = r.cfg;
   const configEcho = `<div class="batch-config">
     <strong>Configuration tested:</strong><br>
@@ -1582,9 +2065,12 @@ function renderBatchDashboard() {
     turns ${c.minTurns}–${c.maxTurns} · drop ${(c.dropChance * 100).toFixed(0)}% ·
     end-of-round ${escHtml(c.endOfRoundBehavior)} · licorice pickup ${(c.licoricePickupChance * 100).toFixed(0)}% ·
     Goal B/C share color: ${c.goalBCShareColor ? 'yes' : 'no'}
+    ${partial ? `<br><em>Live — ${n.toLocaleString()} games in so far.</em>` : ''}
   </div>`;
 
-  host.innerHTML = `<div class="batch-grid">${card1}${card2}${card3}${card4}</div>${configEcho}`;
+  const initialCls = state.batchFirstRender ? ' is-initial' : '';
+  host.innerHTML = `${verdict}<div class="batch-grid${initialCls}">${card1}${card2}${card3}${card4}${card5}</div>${configEcho}`;
+  state.batchFirstRender = false;
 }
 
 function renderPlayers() {
@@ -2377,24 +2863,63 @@ document.getElementById('tab-bar').addEventListener('click', (e) => {
 });
 
 /* ── Batch run presets ───────────────────────────────────────── */
+let _batchLastRenderAt = 0;
+
 document.querySelectorAll('.batch-preset').forEach(btn => {
   btn.addEventListener('click', () => {
     if (state.batchRunning) return;
     const runs = Number(btn.dataset.runs);
     const cfg  = structuredClone(pendingConfig);
-    state.batchRunning  = true;
-    state.batchResult   = null;
-    state.batchProgress = 0;
-    state.batchTarget   = runs;
+    state.batchRunning   = true;
+    state.batchResult    = null;
+    state.batchProgress  = 0;
+    state.batchTarget    = runs;
+    state.batchStartTime = performance.now();
+    state.batchConvergence = { fairness: [], margin: [], leadChanges: [] };
+    state.batchFirstRender = true;
+    _batchLastRenderAt = 0;
     renderBatch();
     runBatch(cfg, runs,
-      (done) => { state.batchProgress = done; updateBatchProgress(); },
-      (agg)  => {
+      (done, total, snapshot) => {
+        state.batchProgress = done;
+        // Append convergence points (per chunk).
+        const np = snapshot.numPlayers;
+        const fairShareP = snapshot.winsPerSeat.reduce((a, b) => a + b, 0) / np / snapshot.n;
+        let maxDevPts = 0;
+        for (let i = 0; i < np; i++) {
+          const p = snapshot.winsPerSeat[i] / snapshot.n;
+          maxDevPts = Math.max(maxDevPts, Math.abs(p - fairShareP) * 100);
+        }
+        state.batchConvergence.fairness.push(maxDevPts);
+        state.batchConvergence.margin.push(snapshot.marginSum / snapshot.n);
+        state.batchConvergence.leadChanges.push(snapshot.leadChangeSum / snapshot.n);
+
+        updateBatchProgress();
+        // Throttle dashboard repaints during streaming so 10k runs stay smooth.
+        const now = performance.now();
+        if (done >= total || now - _batchLastRenderAt > 180) {
+          _batchLastRenderAt = now;
+          renderBatchDashboard(snapshot);
+        }
+      },
+      (agg) => {
         state.batchResult  = agg;
         state.batchRunning = false;
         renderBatch();
       });
   });
+});
+
+/* ── Batch reset ─────────────────────────────────────────────── */
+document.getElementById('btn-batch-reset').addEventListener('click', () => {
+  if (state.batchRunning) return;
+  state.batchResult = null;
+  state.batchProgress = 0;
+  state.batchTarget = 0;
+  state.batchStartTime = 0;
+  state.batchConvergence = { fairness: [], margin: [], leadChanges: [] };
+  state.batchFirstRender = false;
+  renderBatch();
 });
 
 /* ── Batch CSV export ────────────────────────────────────────── */
