@@ -1689,7 +1689,10 @@ function densityCurve(tally) {
     return `<svg class="batch-density" viewBox="0 0 ${W} ${H}"></svg>`;
   }
   const minV = keys[0], maxV = keys[keys.length - 1];
-  const span = Math.max(1, maxV - minV);
+  // span is the true range (may be 0 when every score is identical). safeSpan
+  // is used as a divisor / for bandwidth so we never divide by zero.
+  const span = maxV - minV;
+  const safeSpan = span === 0 ? 1 : span;
 
   // Build flat expanded array for percentile calcs.
   const expanded = [];
@@ -1709,7 +1712,7 @@ function densityCurve(tally) {
   // Kernel-smoothed density across the integer range.
   const xs = [];
   for (let v = minV; v <= maxV; v++) xs.push(v);
-  const bandwidth = Math.max(0.7, span / 12);
+  const bandwidth = Math.max(0.7, safeSpan / 12);
   const densAt = (x) => {
     let s = 0;
     for (const v of keys) {
@@ -1734,11 +1737,11 @@ function densityCurve(tally) {
   const xq1 = xScale(q1), xq3 = xScale(q3), xMed = xScale(median);
   const rectY = padT, rectH = H - padT - padB;
 
-  // Axis labels every ~25% across the range.
-  const labelVals = [];
-  for (let i = 0; i <= 4; i++) {
-    labelVals.push(minV + Math.round((span * i) / 4));
-  }
+  // Axis labels every ~25% across the range. When every score is identical,
+  // just label the single value at the centered position.
+  const labelVals = span === 0
+    ? [minV]
+    : Array.from({ length: 5 }, (_, i) => minV + Math.round((span * i) / 4));
   const labels = labelVals.map(v => {
     const x = xScale(v);
     return `<text class="tick" x="${x.toFixed(1)}" y="${(H - 6)}" text-anchor="middle">${v}</text>`;
@@ -1934,12 +1937,17 @@ function renderBatchDashboard(snapshot) {
   // ── Card 1: Win distribution by seat (with Wilson CI whiskers) ──
   const fairShareP = r.winsPerSeat.reduce((a, b) => a + b, 0) / np / n; // proportion 0..1
   const winPcts = r.winsPerSeat.map(w => pct(w, n));
-  const winBarScale = Math.max(...winPcts, fairShareP * 100, 1);
+  // Pre-compute CIs so the bar scale can include whisker hi/lo — otherwise on
+  // small/medium runs a CI hi can exceed every observed win% and the right
+  // whisker would clip past the track's overflow:hidden boundary.
+  const cis = r.winsPerSeat.map(w => wilsonCI(w, n));
+  const ciHiMax = Math.max(...cis.map(c => c.hi * 100));
+  const winBarScale = Math.max(...winPcts, fairShareP * 100, ciHiMax, 1);
   let biasedAnySeat = false;
   let winRows = '';
   for (let i = 0; i < np; i++) {
     const winP = winPcts[i];
-    const ci = wilsonCI(r.winsPerSeat[i], n);
+    const ci = cis[i];
     const ciLoPct = ci.lo * 100, ciHiPct = ci.hi * 100;
     const whiskerLeftPct  = pct(ciLoPct, winBarScale);
     const whiskerRightPct = pct(ciHiPct, winBarScale);
@@ -2896,6 +2904,10 @@ document.querySelectorAll('.batch-preset').forEach(btn => {
 
         updateBatchProgress();
         // Throttle dashboard repaints during streaming so 10k runs stay smooth.
+        // Skip the heavy SVG repaint entirely when the Batch tab isn't visible —
+        // re-rendering the (display:none) dashboard still costs layout work and
+        // can slow the sim when the user navigates away mid-run.
+        if (state.activeTab !== 'batch') return;
         const now = performance.now();
         if (done >= total || now - _batchLastRenderAt > 180) {
           _batchLastRenderAt = now;
